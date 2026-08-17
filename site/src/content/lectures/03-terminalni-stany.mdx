@@ -23,6 +23,7 @@ import VideoEmbed from '../../components/VideoEmbed.astro';
 import T from '../../components/T.astro';
 import Algorithm from '../../components/Algorithm.astro';
 import BLS from '../../components/algorithms/BLS.astro';
+import Figure from '../../components/Figure.astro';
 
 ## Термінальні стани: визначення і стадії
 
@@ -62,6 +63,14 @@ import BLS from '../../components/algorithms/BLS.astro';
 За рекомендаціями ERC/RCUK 2025 телефонуйте **112 одразу**, щойно виявили непритомну людину, — не чекайте підтвердження зупинки дихання. Оцінюйте дихання, поки триває виклик, і слухайте підказки диспетчера.
 </Important>
 
+<Figure
+  src="/images/lectures/03/chain-of-survival.jpg"
+  alt="Ланцюжок виживання: чотири ланки від розпізнавання до постреанімаційної допомоги"
+  caption="«Ланцюжок виживання»: раннє розпізнавання і виклик → рання СЛР → рання дефібриляція → постреанімаційна допомога."
+  license="CC0, Wikimedia Commons"
+  width={741} height={316}
+/>
+
 ## Базова підтримка життя (BLS)
 
 <Algorithm title="Алгоритм BLS (ERC 2021 / RCUK 2025)"><BLS /></Algorithm>
@@ -77,6 +86,23 @@ import BLS from '../../components/algorithms/BLS.astro';
 {/* CHANGED: у pptx було «30:2/15:1» — виправлено на 15:2 (педіатрична СЛР двома медпрацівниками). Джерело: ERC 2021/2025 Paediatric Life Support. */}
 
 Співвідношення компресій до вдихів: у дорослих — **30:2**; у дітей для двох медичних рятувальників — **15:2**. Нетреновані рятувальники виконують безперервні компресії без вентиляції. <T id="azd">АЗД</T> застосовують якнайшвидше, виконуючи голосові підказки пристрою.
+
+<div class="media-row">
+  <Figure
+    src="/images/lectures/03/chest-compressions.jpg"
+    alt="Відпрацювання компресій грудної клітки на манекені"
+    caption="Компресії на манекені: основа долоні на нижній половині грудини, руки прямі."
+    license="Фото U.S. Army, Public domain, Wikimedia Commons"
+    width={1280} height={853}
+  />
+  <Figure
+    src="/images/lectures/03/aed.jpg"
+    alt="Публічний АЗД у настінному боксі"
+    caption="Публічний АЗД: доступний без навчання, веде рятувальника голосовими підказками."
+    license="CC0, Wikimedia Commons"
+    width={1280} height={1707}
+  />
+</div>
 
 <VideoEmbed id="3Y5sO2REU2o" title="Техніка компресій грудної клітки (Geeky Medics, OSCE)" />
 
@@ -101,6 +127,23 @@ import BLS from '../../components/algorithms/BLS.astro';
 - **шокові**: <T id="fibrylyatsiya-shlunochkiv">фібриляція шлуночків</T> (VF) та шлуночкова тахікардія без пульсу (pVT) — показана <T id="defibrylyatsiya">дефібриляція</T>;
 - **нешокові**: <T id="pea">електрична активність без пульсу</T> (PEA) та <T id="asystoliya">асистолія</T> — дефібриляція не показана.
 
+<div class="media-row">
+  <Figure
+    src="/images/lectures/03/vf-ecg.png"
+    alt="ЕКГ-стрічка з фібриляцією шлуночків"
+    caption="Фібриляція шлуночків: хаотичні хвилі без організованих комплексів. Шоковий ритм."
+    license="Public domain, Wikimedia Commons"
+    width={1000} height={153}
+  />
+  <Figure
+    src="/images/lectures/03/asystole-ecg.jpg"
+    alt="ЕКГ-стрічка з асистолією (ізолінія)"
+    caption="Асистолія: ізолінія без електричної активності. Нешоковий ритм."
+    license="Public domain, Wikimedia Commons"
+    width={579} height={118}
+  />
+</div>
+
 {/* CHANGED: у pptx було «біфазні 120–200 Дж» — уточнено за RCUK ALS 2025: перший розряд ≥150 Дж (пульсові біфазні 130–150 Дж); якщо енергія невідома — максимальна. */}
 
 **Дефібриляція**: перший розряд біфазним дефібрилятором — **щонайменше 150 Дж** (або за інструкцією виробника; для пульсових біфазних 130–150 Дж), з ескалацією за неефективності. Якщо рекомендована енергія невідома — використовуйте максимальну. Після кожного розряду — **негайно** відновити компресії на 2 хв без перевірки ритму.
@@ -114,6 +157,14 @@ import BLS from '../../components/algorithms/BLS.astro';
 </Dose>
 
 Шлях введення: внутрішньовенний — пріоритетний; внутрішньокістковий — якщо в/в недоступний. Ендотрахеальний шлях ненадійний і не рекомендується.
+
+<Figure
+  src="/images/lectures/03/torsades-ecg.png"
+  alt="ЕКГ із torsades de pointes: веретеноподібні комплекси навколо ізолінії"
+  caption="Torsades de pointes: поліморфна шлуночкова тахікардія з «обертанням» комплексів навколо ізолінії; показаний магнію сульфат."
+  license="CC0, Wikimedia Commons"
+  width={1280} height={435}
+/>
 
 ### Оборотні причини: 4H та 4T
 
@@ -157,3 +208,20 @@ import BLS from '../../components/algorithms/BLS.astro';
 
 - **<T id="dekortykatsiya">Декортикація</T>** — флексорна поза: руки зігнуті та приведені до грудей, ноги розігнуті; ураження вище рівня червоного ядра.
 - **<T id="detserebratsiya">Децеребрація</T>** — екстензорна поза: розгинання і пронація кінцівок, опістотонус; ураження стовбура на рівні або нижче червоного ядра; прогноз гірший.
+
+<div class="media-row">
+  <Figure
+    src="/images/lectures/03/decorticate.png"
+    alt="Схема декортикаційної пози: руки зігнуті до грудей, ноги розігнуті"
+    caption="Декортикація: флексорна поза верхніх кінцівок."
+    license="Public domain, Wikimedia Commons"
+    width={574} height={136}
+  />
+  <Figure
+    src="/images/lectures/03/decerebrate.jpg"
+    alt="Схема децеребраційної пози: кінцівки розігнуті, передпліччя проновані"
+    caption="Децеребрація: екстензорна поза з пронацією передпліч."
+    license="Вільне використання (CueFlash), Wikimedia Commons"
+    width={462} height={138}
+  />
+</div>

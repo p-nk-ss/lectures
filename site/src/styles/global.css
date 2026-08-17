@@ -89,8 +89,6 @@ body {
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
-  /* Reserve space for the floating dock. */
-  padding-bottom: 84px;
 }
 
 /* Ambient layer: color glows + subtle dot grid faded by a radial mask.
@@ -154,6 +152,10 @@ a { color: var(--primary); }
 .prose th { color: var(--text-muted); font-family: var(--font-heading); }
 .prose th, .prose td { border: 1px solid var(--border); padding: 0.5rem 0.75rem; text-align: left; }
 .prose ol, .prose ul { padding-left: 1.4rem; }
+
+/* Side-by-side figures inside lecture content; stacks on narrow screens. */
+.media-row { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; align-items: start; }
+@media (max-width: 640px) { .media-row { grid-template-columns: 1fr; } }
 
 /* ---------- Buttons ---------- */
 .btn {

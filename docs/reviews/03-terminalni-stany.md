@@ -36,6 +36,18 @@
 
 - Растрові зображення з pptx (21 файл) **не перенесені**: походження/ліцензія невідомі (заборона на медіа без ліцензії). Алгоритм BLS відтворено як SVG (`site/src/components/algorithms/BLS.astro`).
 - Відео в лекції: `3Y5sO2REU2o` (Geeky Medics — техніка компресій, OSCE). **Підтвердити або замінити** на відео офіційного каналу RCUK/AHA за смаком автора.
+- Додані відкриті зображення (Wikimedia Commons, у `site/public/images/lectures/03/`, ліцензія в підписі кожного):
+
+| Файл | Джерело (Commons) | Ліцензія |
+|---|---|---|
+| chain-of-survival.jpg | File:Chain of Survival.jpg | CC0 |
+| chest-compressions.jpg | File:Teen practices chest compressions.jpg | Public domain (U.S. Army) |
+| aed.jpg | File:Cheevers Court Defibrillator.jpg | CC0 |
+| vf-ecg.png | File:V f.png | Public domain |
+| asystole-ecg.jpg | File:Lead II rhythm generated asystole.JPG | Public domain |
+| torsades-ecg.png | File:Torsades de Pointes (polymorphic VT).svg | CC0 |
+| decorticate.png | File:Decorticate.PNG | Public domain |
+| decerebrate.jpg | File:Decerebrate.jpg | Copyrighted free use |
 
 ## Чеклист автора перед публікацією
 

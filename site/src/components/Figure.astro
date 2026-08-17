@@ -1,0 +1,33 @@
+---
+// Content image with caption and license attribution (open-licensed media only).
+interface Props {
+  src: string;
+  alt: string;
+  caption: string;
+  license: string;
+  width?: number;
+  height?: number;
+}
+const { src, alt, caption, license, width, height } = Astro.props;
+---
+<figure class="media-figure">
+  <div class="frame"><img src={src} alt={alt} loading="lazy" width={width} height={height} /></div>
+  <figcaption>{caption} <span class="lic">· {license}</span></figcaption>
+</figure>
+<style>
+  .media-figure { margin: 1.25rem 0; }
+  .frame {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  img { display: block; width: 100%; height: auto; }
+  figcaption {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-top: 0.45rem;
+    padding-inline: 0.25rem;
+  }
+  .lic { opacity: 0.75; }
+</style>
