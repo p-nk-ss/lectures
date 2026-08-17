@@ -16,7 +16,6 @@ const topicId = entry.id.slice(0, 2);
 const topic = topicById(topicId);
 const quizzes = await getCollection('quizzes', (q) => q.data.topic === topicId);
 const toc = headings.filter((h) => h.depth === 2);
-const fmt = new Intl.DateTimeFormat('uk-UA', { dateStyle: 'long' });
 ---
 <Base title={entry.data.title} description={entry.data.description}>
   <article class="lecture" style={`--accent: ${topic?.color ?? 'var(--primary)'}`}>
@@ -24,7 +23,7 @@ const fmt = new Intl.DateTimeFormat('uk-UA', { dateStyle: 'long' });
       {entry.data.status !== 'published' && <p class="draft-badge">Чернетка, не опубліковано</p>}
       {topic && <p class="topic-label">Тема {topic.order} · Модуль {topic.module}</p>}
       <h1>{entry.data.title}</h1>
-      <p class="meta">{toc.length} розділів · Оновлено {fmt.format(entry.data.updatedAt)}</p>
+      <p class="meta">{toc.length} розділів</p>
     </header>
     <div class="lecture-grid">
       {toc.length > 0 && (
