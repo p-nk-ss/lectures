@@ -1,0 +1,55 @@
+---
+import '../styles/global.css';
+
+interface Props { title: string; description?: string }
+const { title, description = 'Лекції з анестезіології та інтенсивної терапії' } = Astro.props;
+---
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <script is:inline>
+      const t = localStorage.getItem('aiti:theme');
+      if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches))
+        document.documentElement.dataset.theme = 'dark';
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav">
+        <a href="/" class="brand">АіІТ · лекції</a>
+        <nav>
+          <a href="/tests/">Тести</a>
+          <a href="/glossary/">Глосарій</a>
+          <button id="search-open" aria-label="Пошук">🔍</button>
+          <button id="theme-toggle" aria-label="Тема">◐</button>
+        </nav>
+      </div>
+    </header>
+    <main class="container"><slot /></main>
+    <footer class="container site-footer">
+      <p>Навчальні матеріали. Не замінюють клінічні протоколи та призначення лікаря.</p>
+    </footer>
+    <script>
+      document.getElementById('theme-toggle')?.addEventListener('click', () => {
+        const root = document.documentElement;
+        const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+        if (next === 'dark') root.dataset.theme = 'dark';
+        else delete root.dataset.theme;
+        localStorage.setItem('aiti:theme', next);
+      });
+    </script>
+    <style>
+      .site-header { position: sticky; top: 0; background: var(--surface); border-bottom: 1px solid var(--border); z-index: 10; }
+      .nav { display: flex; align-items: center; justify-content: space-between; padding-block: 0.6rem; }
+      .brand { font-family: var(--font-heading); font-weight: 800; text-decoration: none; color: var(--text); }
+      nav { display: flex; gap: 0.75rem; align-items: center; }
+      nav a { color: var(--text-muted); text-decoration: none; font-weight: 600; }
+      nav button { background: none; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text); padding: 0.25rem 0.5rem; }
+      .site-footer { color: var(--text-muted); font-size: 0.85rem; padding-block: 2rem; }
+    </style>
+  </body>
+</html>
