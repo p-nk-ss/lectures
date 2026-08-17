@@ -1,0 +1,23 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import Quiz from '../../../components/quiz/Quiz.tsx';
+import { topicById } from '../../../lib/topics';
+
+export async function getStaticPaths() {
+  const quizzes = await getCollection('quizzes');
+  return quizzes.map((q) => ({
+    params: { topic: q.data.topic, level: q.data.level },
+    props: { quiz: q },
+  }));
+}
+
+const { quiz } = Astro.props;
+const topic = topicById(quiz.data.topic);
+const levelName = quiz.data.level === 'nurse' ? 'медсестра' : 'лікар';
+---
+<Base title={`Тест: ${topic?.short ?? quiz.data.topic} (${levelName})`}>
+  <h1>Тест: {topic?.short ?? 'Тема ' + quiz.data.topic}</h1>
+  <p class="muted">Рівень: {levelName} · {quiz.data.questions.length} питань</p>
+  <Quiz client:load topic={quiz.data.topic} level={quiz.data.level} questions={quiz.data.questions} />
+</Base>

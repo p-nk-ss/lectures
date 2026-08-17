@@ -1,0 +1,14 @@
+---
+interface Props { title: string }
+const { title } = Astro.props;
+---
+<figure class="algorithm">
+  <div class="scroll"><slot /></div>
+  <figcaption>{title}</figcaption>
+</figure>
+<style>
+  .algorithm { margin: 1.25rem 0; }
+  .scroll { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem; }
+  .scroll :global(svg) { display: block; margin-inline: auto; max-width: 100%; height: auto; }
+  figcaption { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 0.4rem; }
+</style>

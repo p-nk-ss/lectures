@@ -1,0 +1,53 @@
+{/* BLS chain per ERC 2021 / RCUK 2025. Colors follow site CSS variables for theme support. */}
+<svg viewBox="0 0 420 640" role="img" aria-label="Алгоритм базової підтримки життя (BLS)">
+  <defs>
+    <marker id="bls-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-muted)" />
+    </marker>
+  </defs>
+  <style>
+    .box { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.5; rx: 12; }
+    .box-danger { fill: color-mix(in srgb, var(--danger) 12%, var(--surface)); stroke: var(--danger); }
+    .box-ok { fill: color-mix(in srgb, var(--ok) 12%, var(--surface)); stroke: var(--ok); }
+    .t { font: 600 15px var(--font-body, sans-serif); fill: var(--text); text-anchor: middle; }
+    .t-small { font: 400 12.5px var(--font-body, sans-serif); fill: var(--text-muted); text-anchor: middle; }
+    .arrow { stroke: var(--text-muted); stroke-width: 2; marker-end: url(#bls-arrow); }
+  </style>
+
+  <rect class="box" x="60" y="10" width="300" height="58" rx="12" />
+  <text class="t" x="210" y="34">Не реагує?</text>
+  <text class="t-small" x="210" y="54">Безпека місця, обережно струснути, гукнути</text>
+  <line class="arrow" x1="210" y1="68" x2="210" y2="94" />
+
+  <rect class="box box-danger" x="60" y="96" width="300" height="58" rx="12" />
+  <text class="t" x="210" y="120">Викликати 112</text>
+  <text class="t-small" x="210" y="140">Негайно; гучний звʼязок, слухати диспетчера</text>
+  <line class="arrow" x1="210" y1="154" x2="210" y2="180" />
+
+  <rect class="box" x="60" y="182" width="300" height="58" rx="12" />
+  <text class="t" x="210" y="206">Дихання відсутнє / ненормальне?</text>
+  <text class="t-small" x="210" y="226">Відкрити дихальні шляхи; ґаспінґ = зупинка</text>
+  <line class="arrow" x1="210" y1="240" x2="210" y2="266" />
+
+  <rect class="box box-danger" x="60" y="268" width="300" height="74" rx="12" />
+  <text class="t" x="210" y="292">30 компресій : 2 вдихи</text>
+  <text class="t-small" x="210" y="312">100–120/хв · 5–6 см · повний відскок</text>
+  <text class="t-small" x="210" y="330">мінімальні паузи, зміна виконавця ~2 хв</text>
+  <line class="arrow" x1="210" y1="342" x2="210" y2="368" />
+
+  <rect class="box" x="60" y="370" width="300" height="58" rx="12" />
+  <text class="t" x="210" y="394">АЗД — якнайшвидше</text>
+  <text class="t-small" x="210" y="414">Увімкнути та виконувати голосові підказки</text>
+  <line class="arrow" x1="210" y1="428" x2="210" y2="454" />
+
+  <rect class="box" x="60" y="456" width="300" height="74" rx="12" />
+  <text class="t" x="210" y="480">Ритм шоковий?</text>
+  <text class="t-small" x="210" y="500">Так → 1 розряд → одразу СЛР 2 хв</text>
+  <text class="t-small" x="210" y="518">Ні → СЛР 2 хв → повторний аналіз</text>
+  <line class="arrow" x1="210" y1="530" x2="210" y2="556" />
+
+  <rect class="box box-ok" x="60" y="558" width="300" height="72" rx="12" />
+  <text class="t" x="210" y="582">Продовжувати</text>
+  <text class="t-small" x="210" y="602">до прибуття ЕМД, ознак ROSC</text>
+  <text class="t-small" x="210" y="620">або виснаження рятувальника</text>
+</svg>

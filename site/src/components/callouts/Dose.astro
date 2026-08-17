@@ -1,0 +1,9 @@
+<aside class="callout dose" role="note">
+  <strong class="label">💉 Дозування</strong>
+  <div><slot /></div>
+</aside>
+<style>
+  .callout { border-radius: var(--radius); padding: 0.9rem 1rem; margin-block: 1rem; border: 1px solid; }
+  .dose { background: color-mix(in srgb, var(--warn) 10%, var(--surface)); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
+  .label { display: block; margin-bottom: 0.25rem; color: var(--warn); }
+</style>

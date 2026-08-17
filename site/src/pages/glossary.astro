@@ -1,0 +1,42 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+
+const terms = (await getCollection('glossary'))
+  .sort((a, b) => a.data.term.localeCompare(b.data.term, 'uk'));
+---
+<Base title="Глосарій — АіІТ">
+  <h1>Глосарій</h1>
+  <input id="filter" type="search" placeholder="Фільтр термінів…" autocomplete="off" />
+  <dl class="terms">
+    {terms.map((t) => (
+      <div class="entry" data-search={[t.data.term, ...t.data.synonyms].join(' ').toLowerCase()}>
+        <dt>{t.data.term}{t.data.synonyms.length > 0 && <span class="syn"> ({t.data.synonyms.join(', ')})</span>}</dt>
+        <dd>{t.data.definition}</dd>
+      </div>
+    ))}
+  </dl>
+  <p id="empty" hidden>Нічого не знайдено.</p>
+  <script>
+    const input = document.getElementById('filter') as HTMLInputElement;
+    const entries = [...document.querySelectorAll<HTMLElement>('.entry')];
+    const empty = document.getElementById('empty')!;
+    input.addEventListener('input', () => {
+      const q = input.value.trim().toLowerCase();
+      let shown = 0;
+      for (const e of entries) {
+        const hit = !q || e.dataset.search!.includes(q);
+        e.hidden = !hit;
+        if (hit) shown++;
+      }
+      empty.hidden = shown > 0;
+    });
+  </script>
+  <style>
+    #filter { width: 100%; max-width: 24rem; padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; margin-block: 0.5rem 1.25rem; }
+    .entry { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; margin-block: 0.5rem; }
+    dt { font-weight: 700; font-family: var(--font-heading); }
+    .syn { color: var(--text-muted); font-weight: 400; }
+    dd { margin: 0.25rem 0 0; color: var(--text-muted); }
+  </style>
+</Base>
