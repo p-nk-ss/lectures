@@ -1,0 +1,40 @@
+<dialog id="search-dialog">
+  <button id="search-close" aria-label="Закрити">✕</button>
+  <div id="search"></div>
+  <p id="search-fallback" hidden>Пошук доступний лише у зібраній версії сайту.</p>
+</dialog>
+<script>
+  const dialog = document.getElementById('search-dialog') as HTMLDialogElement;
+  let inited = false;
+
+  async function openSearch() {
+    dialog.showModal();
+    if (inited) return;
+    inited = true;
+    try {
+      // Served from /pagefind/ in the built site; absent in dev.
+      // pagefind-ui.js is UMD: it attaches PagefindUI to window, module namespace is empty.
+      await import(/* @vite-ignore */ '/pagefind/pagefind-ui.js' as string);
+      const PagefindUI = (window as any).PagefindUI;
+      if (!PagefindUI) throw new Error('PagefindUI not loaded');
+      new PagefindUI({ element: '#search', showSubResults: true, translations: { placeholder: 'Пошук по лекціях…' } });
+    } catch {
+      document.getElementById('search-fallback')!.hidden = false;
+    }
+  }
+
+  document.getElementById('search-open')?.addEventListener('click', openSearch);
+  document.getElementById('search-close')?.addEventListener('click', () => dialog.close());
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      dialog.open ? dialog.close() : openSearch();
+    }
+  });
+  dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
+</script>
+<style>
+  dialog { width: min(40rem, 92vw); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); padding: 1rem; }
+  dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+  #search-close { float: right; background: none; border: 0; cursor: pointer; color: var(--text-muted); font-size: 1rem; }
+</style>
