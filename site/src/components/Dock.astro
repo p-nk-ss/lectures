@@ -1,0 +1,132 @@
+---
+// macOS-style floating dock: primary navigation + search + theme toggle.
+// Magnification runs on fine pointers only and respects prefers-reduced-motion.
+import Icon from './Icon.astro';
+
+const path = Astro.url.pathname;
+const items = [
+  { href: '/', icon: 'home', label: 'Головна' },
+  { href: '/tests/', icon: 'list-check', label: 'Тести' },
+  { href: '/glossary/', icon: 'book-2', label: 'Глосарій' },
+] as const;
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+<nav class="dock" aria-label="Головна навігація">
+  {items.map((it) => (
+    <a class="dock-item" href={it.href} aria-current={isActive(it.href) ? 'page' : undefined}>
+      <Icon name={it.icon} size={21} />
+      <span class="dock-label">{it.label}</span>
+    </a>
+  ))}
+  <span class="dock-sep" aria-hidden="true"></span>
+  <button class="dock-item" id="search-open" aria-label="Пошук (Ctrl+K)">
+    <Icon name="search" size={21} />
+    <span class="dock-label">Пошук</span>
+  </button>
+  <button class="dock-item" id="theme-toggle" aria-label="Перемкнути тему">
+    <span class="only-dark"><Icon name="sun" size={21} /></span>
+    <span class="only-light"><Icon name="moon" size={21} /></span>
+    <span class="dock-label">Тема</span>
+  </button>
+</nav>
+<script>
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    const root = document.documentElement;
+    const next = root.dataset.theme === 'light' ? 'dark' : 'light';
+    if (next === 'light') root.dataset.theme = 'light';
+    else delete root.dataset.theme;
+    localStorage.setItem('aiti:theme', next);
+  });
+
+  // Dock magnification: scale items by cursor proximity.
+  const dock = document.querySelector<HTMLElement>('.dock');
+  const finePointer = matchMedia('(pointer: fine)').matches;
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (dock && finePointer && !reduceMotion) {
+    const items = [...dock.querySelectorAll<HTMLElement>('.dock-item')];
+    dock.addEventListener('mousemove', (e) => {
+      for (const item of items) {
+        const r = item.getBoundingClientRect();
+        const d = Math.abs(e.clientX - (r.left + r.width / 2));
+        const f = Math.max(0, 1 - d / 110);
+        item.style.transform = `translateY(${-8 * f}px) scale(${1 + 0.3 * f})`;
+      }
+    });
+    dock.addEventListener('mouseleave', () => {
+      for (const item of items) item.style.transform = '';
+    });
+  }
+</script>
+<style>
+  .dock {
+    position: fixed;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.45rem 0.55rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface) 78%, transparent);
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 16px 40px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+  }
+  .dock-item {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease, background 0.15s ease;
+    will-change: transform;
+  }
+  .dock-item:hover { color: var(--text); background: var(--glass); }
+  .dock-item[aria-current='page'] { color: var(--primary); }
+  .dock-item[aria-current='page']::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--primary);
+  }
+  .dock-sep { width: 1px; height: 22px; background: var(--border-strong); margin-inline: 0.15rem; }
+  .dock-label {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    translate: -50% 0;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: var(--font-heading);
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.2rem 0.55rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+  .dock-item:hover .dock-label, .dock-item:focus-visible .dock-label { opacity: 1; }
+  .only-light { display: none; }
+  :global(html[data-theme='light']) .only-light { display: grid; }
+  :global(html[data-theme='light']) .only-dark { display: none; }
+  @media (max-width: 640px) {
+    .dock { bottom: 10px; }
+    .dock-item { width: 42px; height: 42px; }
+    .dock-label { display: none; }
+  }
+</style>

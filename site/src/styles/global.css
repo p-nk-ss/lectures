@@ -37,6 +37,7 @@
   --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 12px 32px rgba(0, 0, 0, 0.35);
   --glow-1: rgba(99, 102, 241, 0.16);
   --glow-2: rgba(192, 132, 252, 0.1);
+  --pattern-dot: rgba(255, 255, 255, 0.07);
 }
 
 [data-theme='light'] {
@@ -68,6 +69,7 @@
   --shadow-card: 0 1px 2px rgba(23, 25, 41, 0.05), 0 12px 32px rgba(23, 25, 41, 0.07);
   --glow-1: rgba(99, 102, 241, 0.1);
   --glow-2: rgba(192, 132, 252, 0.08);
+  --pattern-dot: rgba(23, 25, 41, 0.09);
 }
 
 * { box-sizing: border-box; }
@@ -87,9 +89,12 @@ body {
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+  /* Reserve space for the floating dock. */
+  padding-bottom: 84px;
 }
 
-/* Ambient glow: fixed, non-interactive, cheap (no animation). */
+/* Ambient layer: color glows + subtle dot grid faded by a radial mask.
+   Fixed and non-interactive; no animation, cheap to composite. */
 body::before {
   content: '';
   position: fixed;
@@ -99,6 +104,17 @@ body::before {
   background:
     radial-gradient(42rem 30rem at 12% -8%, var(--glow-1), transparent 62%),
     radial-gradient(38rem 28rem at 95% 12%, var(--glow-2), transparent 60%);
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(var(--pattern-dot) 1px, transparent 1.5px);
+  background-size: 26px 26px;
+  mask-image: radial-gradient(70rem 45rem at 50% -10%, black 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(70rem 45rem at 50% -10%, black 30%, transparent 75%);
 }
 
 h1, h2, h3, h4 {

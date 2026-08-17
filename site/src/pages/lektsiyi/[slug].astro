@@ -79,6 +79,7 @@ const fmt = new Intl.DateTimeFormat('uk-UA', { dateStyle: 'long' });
       const spy = new IntersectionObserver(
         (entries) => {
           for (const e of entries) {
+            e.target.classList.toggle('in-view', e.isIntersecting);
             const id = e.target.querySelector('h2')?.id;
             const link = id && links.get(id);
             if (link) link.classList.toggle('active', e.isIntersecting);
@@ -114,8 +115,48 @@ const fmt = new Intl.DateTimeFormat('uk-UA', { dateStyle: 'long' });
     .meta { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
 
     .lecture-grid { display: grid; gap: 2rem; counter-reset: section; }
+    /* Grid items must be allowed to shrink below content min-width. */
+    .lecture-grid > * { min-width: 0; }
 
-    /* Section cards produced by rehype-sections */
+    /* Timeline rail: base line + gradient beam that grows with scroll where supported. */
+    .lecture-body { position: relative; padding-left: 3.4rem; max-width: 49.4rem; }
+    .lecture-body::before {
+      content: '';
+      position: absolute;
+      left: 1.1rem;
+      top: 1.5rem;
+      bottom: 1.5rem;
+      width: 2px;
+      background: var(--border);
+      border-radius: 1px;
+    }
+    .lecture-body::after {
+      content: '';
+      position: absolute;
+      left: 1.1rem;
+      top: 1.5rem;
+      bottom: 1.5rem;
+      width: 2px;
+      border-radius: 1px;
+      background: linear-gradient(180deg, var(--accent), #c084fc 60%, transparent);
+      transform-origin: top;
+    }
+    @supports (animation-timeline: view()) {
+      .lecture-body::after {
+        animation: lecture-beam linear both;
+        animation-timeline: view();
+        animation-range: cover 8% cover 80%;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .lecture-body::after { animation: none; transform: none; }
+    }
+    @keyframes lecture-beam {
+      from { transform: scaleY(0); }
+      to { transform: scaleY(1); }
+    }
+
+    /* Section cards produced by rehype-sections, hung on the rail. */
     .lecture-body :global(.lecture-section) {
       counter-increment: section;
       background: var(--surface);
@@ -123,35 +164,53 @@ const fmt = new Intl.DateTimeFormat('uk-UA', { dateStyle: 'long' });
       border-radius: var(--radius);
       box-shadow: var(--shadow-card);
       padding: 1.5rem 1.5rem 1.25rem;
-      margin-block: 1.25rem;
+      margin-block: 1.5rem;
       position: relative;
-      overflow: hidden;
     }
+    .lecture-body :global(.lecture-section:first-child) { margin-top: 0; }
+    /* Numbered dot centered on the rail. */
     .lecture-body :global(.lecture-section::before) {
-      content: '';
+      content: counter(section, decimal-leading-zero);
       position: absolute;
-      inset: 0 auto 0 0;
-      width: 3px;
-      background: linear-gradient(180deg, var(--accent), transparent 85%);
+      left: -3.42rem;
+      top: 1.1rem;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: 2.3rem;
+      height: 2.3rem;
+      border-radius: 999px;
+      background: var(--bg);
+      border: 1.5px solid color-mix(in srgb, var(--accent) 50%, var(--border));
+      color: var(--accent);
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 0.85rem;
+      font-variant-numeric: tabular-nums;
+      transition: box-shadow 0.25s ease, background 0.25s ease;
+    }
+    .lecture-body :global(.lecture-section.in-view::before) {
+      background: color-mix(in srgb, var(--accent) 18%, var(--bg));
+      box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 16%, transparent);
     }
     .lecture-body :global(.lecture-section > h2) {
-      display: flex;
-      align-items: baseline;
-      gap: 0.75rem;
       margin: 0 0 1rem;
       font-size: 1.45rem;
       scroll-margin-top: 5rem;
     }
-    .lecture-body :global(.lecture-section > h2::before) {
-      content: counter(section, decimal-leading-zero);
-      font-size: 1.9rem;
-      font-weight: 800;
-      color: color-mix(in srgb, var(--accent) 55%, transparent);
-      font-variant-numeric: tabular-nums;
-      line-height: 1;
-    }
     .lecture-body :global(.lecture-section > h3) { font-size: 1.1rem; }
     .lecture-body :global(.lecture-section > :last-child) { margin-bottom: 0; }
+    @media (max-width: 640px) {
+      .lecture-body { padding-left: 2.7rem; }
+      .lecture-body::before, .lecture-body::after { left: 0.85rem; }
+      .lecture-body :global(.lecture-section::before) {
+        left: -2.72rem;
+        width: 1.85rem;
+        height: 1.85rem;
+        font-size: 0.7rem;
+      }
+      .lecture-body :global(.lecture-section) { padding: 1.15rem 1rem 1rem; }
+    }
 
     .toc { font-size: 0.9rem; }
     .toc strong {
