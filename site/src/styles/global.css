@@ -151,7 +151,10 @@ a { color: var(--primary); }
 }
 .prose th { color: var(--text-muted); font-family: var(--font-heading); }
 .prose th, .prose td { border: 1px solid var(--border); padding: 0.5rem 0.75rem; text-align: left; }
-.prose ol, .prose ul { padding-left: 1.4rem; }
+.prose p { margin-block: 1.15rem; }
+.prose ol, .prose ul { padding-left: 1.4rem; margin-block: 1.15rem; }
+.prose li { margin-block: 0.5rem; }
+.prose li::marker { color: var(--text-muted); }
 
 /* Side-by-side figures inside lecture content; stacks on narrow screens. */
 .media-row { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; align-items: start; }
