@@ -1,0 +1,9 @@
+<aside class="callout important" role="note">
+  <strong class="label">⚠️ Важливо</strong>
+  <div><slot /></div>
+</aside>
+<style>
+  .callout { border-radius: var(--radius); padding: 0.9rem 1rem; margin-block: 1rem; border: 1px solid; }
+  .important { background: color-mix(in srgb, var(--danger) 8%, var(--surface)); border-color: color-mix(in srgb, var(--danger) 35%, transparent); }
+  .label { display: block; margin-bottom: 0.25rem; color: var(--danger); }
+</style>

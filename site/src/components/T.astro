@@ -1,0 +1,16 @@
+---
+import { getCollection } from 'astro:content';
+
+interface Props { id: string }
+const { id } = Astro.props;
+const term = (await getCollection('glossary')).find((t) => t.id === id);
+if (!term) throw new Error(`Glossary term not found: ${id}`);
+---
+<span class="term" tabindex="0">
+  <slot /><span class="term-tip" role="tooltip"><strong>{term.data.term}.</strong> {term.data.definition}</span>
+</span>
+<style>
+  .term { border-bottom: 1.5px dotted var(--primary); cursor: help; position: relative; }
+  .term-tip { display: none; position: absolute; left: 0; top: 100%; z-index: 20; width: min(20rem, 80vw); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem 0.75rem; font-size: 0.9rem; line-height: 1.5; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+  .term:hover .term-tip, .term:focus .term-tip { display: block; }
+</style>

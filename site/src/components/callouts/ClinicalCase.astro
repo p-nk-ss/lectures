@@ -1,0 +1,13 @@
+---
+interface Props { title?: string }
+const { title } = Astro.props;
+---
+<aside class="callout case" role="note">
+  <strong class="label">🩺 Клінічний випадок{title ? `: ${title}` : ''}</strong>
+  <div><slot /></div>
+</aside>
+<style>
+  .callout { border-radius: var(--radius); padding: 0.9rem 1rem; margin-block: 1rem; border: 1px solid; }
+  .case { background: color-mix(in srgb, var(--primary) 8%, var(--surface)); border-color: color-mix(in srgb, var(--primary) 35%, transparent); }
+  .label { display: block; margin-bottom: 0.25rem; color: var(--primary); }
+</style>

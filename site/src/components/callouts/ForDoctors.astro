@@ -1,0 +1,9 @@
+<details class="for-doctors">
+  <summary>🎓 Поглиблено — для лікарів</summary>
+  <div class="body"><slot /></div>
+</details>
+<style>
+  .for-doctors { border: 1px solid color-mix(in srgb, #8e4ec6 35%, transparent); background: color-mix(in srgb, #8e4ec6 8%, var(--surface)); border-radius: var(--radius); margin-block: 1rem; }
+  summary { cursor: pointer; font-weight: 700; padding: 0.9rem 1rem; color: #8e4ec6; }
+  .body { padding: 0 1rem 0.9rem; }
+</style>
