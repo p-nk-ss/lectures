@@ -1,0 +1,50 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { topicById } from '../../lib/topics';
+
+const quizzes = await getCollection('quizzes');
+const byTopic = new Map<string, typeof quizzes>();
+for (const q of quizzes) {
+  const list = byTopic.get(q.data.topic) ?? [];
+  list.push(q);
+  byTopic.set(q.data.topic, list);
+}
+const topics = [...byTopic.keys()].sort();
+---
+<Base title="Тести — АіІТ">
+  <h1>Тести для самоконтролю</h1>
+  {topics.map((id) => {
+    const t = topicById(id);
+    return (
+      <section class="topic-tests" style={`--accent: ${t?.color ?? 'var(--primary)'}`}>
+        <h2>{t?.short ?? `Тема ${id}`}</h2>
+        <div class="levels">
+          {(byTopic.get(id) ?? []).sort((a, b) => a.data.level.localeCompare(b.data.level)).map((q) => (
+            <a class="level-card" href={`/tests/${id}/${q.data.level}/`} data-topic={id} data-level={q.data.level}>
+              <span>{q.data.level === 'nurse' ? '🩹 Медсестра' : '🎓 Лікар'}</span>
+              <span class="best" data-best>—</span>
+              <span class="count">{q.data.questions.length} питань</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    );
+  })}
+  <script>
+    document.querySelectorAll<HTMLAnchorElement>('.level-card').forEach((card) => {
+      const raw = localStorage.getItem(`aiti:quiz:${card.dataset.topic}:${card.dataset.level}`);
+      if (!raw) return;
+      try {
+        const b = JSON.parse(raw);
+        card.querySelector('[data-best]')!.textContent = `найкраще: ${b.score}/${b.total}`;
+      } catch {}
+    });
+  </script>
+  <style>
+    .topic-tests { border-left: 4px solid var(--accent); padding-left: 1rem; margin-block: 1.5rem; }
+    .levels { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); }
+    .level-card { display: grid; gap: 0.2rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.9rem 1rem; text-decoration: none; color: var(--text); font-weight: 600; }
+    .best, .count { color: var(--text-muted); font-size: 0.85rem; font-weight: 400; }
+  </style>
+</Base>
