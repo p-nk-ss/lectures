@@ -1,7 +1,64 @@
 ---
+import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
+import { TOPICS } from '../lib/topics';
+import { filterVisible, showDrafts } from '../lib/visibility';
+
+const all = await getCollection('lectures');
+const visible = filterVisible(all, { prod: import.meta.env.PROD, showDrafts: showDrafts() })
+  .filter((l) => l.data.order <= 8);
+const bySlugPrefix = new Map(visible.map((l) => [l.id.slice(0, 2), l]));
+const modules = [
+  { n: 1, title: 'Модуль I. Поняття про анестезіологію та реаніматологію' },
+  { n: 2, title: 'Модуль II. Шокові, коматозні стани та гострі отруєння' },
+];
 ---
 <Base title="Анестезіологія та інтенсивна терапія — лекції">
-  <h1>Анестезіологія та інтенсивна терапія</h1>
-  <p>Каркас. Контент — далі.</p>
+  <section class="hero">
+    <h1>Анестезіологія та інтенсивна терапія</h1>
+    <p>Актуалізовані лекції за сучасними протоколами (ERC, AHA, МОЗ України) + тести для самоконтролю.</p>
+  </section>
+  {modules.map((m) => (
+    <section>
+      <h2>{m.title}</h2>
+      <div class="cards">
+        {TOPICS.filter((t) => t.module === m.n).map((t) => {
+          const lecture = bySlugPrefix.get(t.id);
+          return lecture ? (
+            <a class="card" href={`/lektsiyi/${lecture.id}/`} style={`--accent: ${t.color}`} data-slug={lecture.id} data-topic={t.id}>
+              <span class="num">Тема {t.order}</span>
+              <span class="title">{t.short}</span>
+              <span class="status" data-status></span>
+            </a>
+          ) : (
+            <div class="card soon" style={`--accent: ${t.color}`}>
+              <span class="num">Тема {t.order}</span>
+              <span class="title">{t.short}</span>
+              <span class="status">незабаром</span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  ))}
+  <script>
+    document.querySelectorAll<HTMLAnchorElement>('a.card').forEach((card) => {
+      const read = localStorage.getItem(`aiti:read:${card.dataset.slug}`);
+      const el = card.querySelector('[data-status]')!;
+      const bests = ['nurse', 'doctor']
+        .map((lvl) => localStorage.getItem(`aiti:quiz:${card.dataset.topic}:${lvl}`))
+        .filter(Boolean).length;
+      el.textContent = [read ? '✓ прочитано' : '', bests ? `тестів пройдено: ${bests}` : '']
+        .filter(Boolean).join(' · ');
+    });
+  </script>
+  <style>
+    .hero { padding-block: 1.5rem; }
+    .cards { display: grid; gap: 0.9rem; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); }
+    .card { display: grid; gap: 0.25rem; background: var(--surface); border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: var(--radius); padding: 1rem; text-decoration: none; color: var(--text); }
+    .card .num { color: var(--accent); font-weight: 800; font-size: 0.8rem; text-transform: uppercase; }
+    .card .title { font-family: var(--font-heading); font-weight: 700; }
+    .card .status { color: var(--text-muted); font-size: 0.85rem; min-height: 1.2em; }
+    .card.soon { opacity: 0.6; }
+  </style>
 </Base>
