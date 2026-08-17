@@ -1,9 +1,12 @@
+---
+import Icon from '../Icon.astro';
+---
 <aside class="callout dose" role="note">
-  <strong class="label">💉 Дозування</strong>
+  <strong class="label"><Icon name="vaccine" size={17} /> Дозування</strong>
   <div><slot /></div>
 </aside>
 <style>
-  .callout { border-radius: var(--radius); padding: 0.9rem 1rem; margin-block: 1rem; border: 1px solid; }
-  .dose { background: color-mix(in srgb, var(--warn) 10%, var(--surface)); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
-  .label { display: block; margin-bottom: 0.25rem; color: var(--warn); }
+  .callout { border-radius: var(--radius); padding: 1rem 1.15rem; margin-block: 1.1rem; border: 1px solid; }
+  .dose { background: color-mix(in srgb, var(--warn) 9%, var(--surface)); border-color: color-mix(in srgb, var(--warn) 38%, transparent); }
+  .label { display: flex; align-items: center; gap: 0.45rem; margin-bottom: 0.35rem; color: var(--warn); font-family: var(--font-heading); }
 </style>

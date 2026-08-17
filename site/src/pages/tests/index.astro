@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
 import { topicById } from '../../lib/topics';
 
 const quizzes = await getCollection('quizzes');
@@ -13,7 +14,10 @@ for (const q of quizzes) {
 const topics = [...byTopic.keys()].sort();
 ---
 <Base title="Тести — АіІТ">
-  <h1>Тести для самоконтролю</h1>
+  <header class="page-head">
+    <h1>Тести для самоконтролю</h1>
+    <p>Найкращий результат зберігається у вашому браузері.</p>
+  </header>
   {topics.map((id) => {
     const t = topicById(id);
     return (
@@ -22,9 +26,12 @@ const topics = [...byTopic.keys()].sort();
         <div class="levels">
           {(byTopic.get(id) ?? []).sort((a, b) => a.data.level.localeCompare(b.data.level)).map((q) => (
             <a class="level-card" href={`/tests/${id}/${q.data.level}/`} data-topic={id} data-level={q.data.level}>
-              <span>{q.data.level === 'nurse' ? '🩹 Медсестра' : '🎓 Лікар'}</span>
-              <span class="best" data-best>—</span>
+              <span class="level-name">
+                <Icon name={q.data.level === 'nurse' ? 'first-aid-kit' : 'school'} size={18} />
+                {q.data.level === 'nurse' ? 'Медсестра' : 'Лікар'}
+              </span>
               <span class="count">{q.data.questions.length} питань</span>
+              <span class="best" data-best></span>
             </a>
           ))}
         </div>
@@ -42,9 +49,42 @@ const topics = [...byTopic.keys()].sort();
     });
   </script>
   <style>
-    .topic-tests { border-left: 4px solid var(--accent); padding-left: 1rem; margin-block: 1.5rem; }
+    .page-head { padding-block: 2.5rem 1rem; }
+    .page-head h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0 0 0.4rem; }
+    .page-head p { color: var(--text-muted); margin: 0; }
+    .topic-tests { margin-block: 1.75rem; }
+    .topic-tests h2 {
+      font-size: 1.1rem;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
     .levels { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); }
-    .level-card { display: grid; gap: 0.2rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.9rem 1rem; text-decoration: none; color: var(--text); font-weight: 600; }
-    .best, .count { color: var(--text-muted); font-size: 0.85rem; font-weight: 400; }
+    .level-card {
+      display: grid;
+      gap: 0.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      padding: 1rem 1.15rem;
+      text-decoration: none;
+      color: var(--text);
+      transition: transform 0.18s ease, border-color 0.18s ease;
+    }
+    .level-card:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+    }
+    .level-name {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      color: var(--text);
+    }
+    .level-name :global(.icon) { color: var(--accent); }
+    .best, .count { color: var(--text-muted); font-size: 0.85rem; }
+    .best:empty { display: none; }
   </style>
 </Base>

@@ -1,5 +1,8 @@
+---
+import Icon from './Icon.astro';
+---
 <dialog id="search-dialog">
-  <button id="search-close" aria-label="Закрити">✕</button>
+  <button id="search-close" aria-label="Закрити"><Icon name="x" size={16} /></button>
   <div id="search"></div>
   <p id="search-fallback" hidden>Пошук доступний лише у зібраній версії сайту.</p>
 </dialog>
@@ -34,7 +37,30 @@
   dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
 </script>
 <style>
-  dialog { width: min(40rem, 92vw); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); padding: 1rem; }
-  dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
-  #search-close { float: right; background: none; border: 0; cursor: pointer; color: var(--text-muted); font-size: 1rem; }
+  dialog {
+    width: min(40rem, 92vw);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    padding: 1.25rem;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  }
+  dialog::backdrop {
+    background: rgba(5, 6, 12, 0.6);
+    backdrop-filter: blur(4px);
+  }
+  #search-close {
+    float: right;
+    display: inline-flex;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.3rem;
+    cursor: pointer;
+    color: var(--text-muted);
+  }
+  #search-close:hover { color: var(--text); border-color: var(--border-strong); }
+  /* Pagefind UI theme alignment */
+  #search { --pagefind-ui-primary: var(--primary); --pagefind-ui-text: var(--text); --pagefind-ui-background: var(--surface); --pagefind-ui-border: var(--border); --pagefind-ui-tag: var(--surface-2); --pagefind-ui-border-radius: var(--radius-sm); --pagefind-ui-font: var(--font-body); }
 </style>

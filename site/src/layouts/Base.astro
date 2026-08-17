@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import SearchModal from '../components/SearchModal.astro';
+import Icon from '../components/Icon.astro';
 
 interface Props { title: string; description?: string }
 const { title, description = 'Лекції з анестезіології та інтенсивної терапії' } = Astro.props;
@@ -14,45 +15,100 @@ const { title, description = 'Лекції з анестезіології та 
     <meta name="description" content={description} />
     <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
     <script is:inline>
-      const t = localStorage.getItem('aiti:theme');
-      if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches))
-        document.documentElement.dataset.theme = 'dark';
+      // Dark is the default; light is an explicit stored choice.
+      if (localStorage.getItem('aiti:theme') === 'light')
+        document.documentElement.dataset.theme = 'light';
     </script>
   </head>
   <body>
     <header class="site-header">
       <div class="container nav">
-        <a href="/" class="brand">АіІТ · лекції</a>
+        <a href="/" class="brand">АіІТ<span class="brand-dot">·</span>лекції</a>
         <nav>
           <a href="/tests/">Тести</a>
           <a href="/glossary/">Глосарій</a>
-          <button id="search-open" aria-label="Пошук">🔍</button>
-          <button id="theme-toggle" aria-label="Тема">◐</button>
+          <button id="search-open" aria-label="Пошук (Ctrl+K)" title="Пошук (Ctrl+K)">
+            <Icon name="search" size={18} />
+          </button>
+          <button id="theme-toggle" aria-label="Перемкнути тему" title="Тема">
+            <span class="only-dark"><Icon name="sun" size={18} /></span>
+            <span class="only-light"><Icon name="moon" size={18} /></span>
+          </button>
         </nav>
       </div>
     </header>
     <main class="container"><slot /></main>
-    <footer class="container site-footer">
-      <p>Навчальні матеріали. Не замінюють клінічні протоколи та призначення лікаря.</p>
+    <footer class="site-footer">
+      <div class="container">
+        <p>Навчальні матеріали. Не замінюють клінічні протоколи та призначення лікаря.</p>
+      </div>
     </footer>
     <SearchModal />
     <script>
       document.getElementById('theme-toggle')?.addEventListener('click', () => {
         const root = document.documentElement;
-        const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-        if (next === 'dark') root.dataset.theme = 'dark';
+        const next = root.dataset.theme === 'light' ? 'dark' : 'light';
+        if (next === 'light') root.dataset.theme = 'light';
         else delete root.dataset.theme;
         localStorage.setItem('aiti:theme', next);
       });
     </script>
     <style>
-      .site-header { position: sticky; top: 0; background: var(--surface); border-bottom: 1px solid var(--border); z-index: 10; }
-      .nav { display: flex; align-items: center; justify-content: space-between; padding-block: 0.6rem; }
-      .brand { font-family: var(--font-heading); font-weight: 800; text-decoration: none; color: var(--text); }
-      nav { display: flex; gap: 0.75rem; align-items: center; }
-      nav a { color: var(--text-muted); text-decoration: none; font-weight: 600; }
-      nav button { background: none; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text); padding: 0.25rem 0.5rem; }
-      .site-footer { color: var(--text-muted); font-size: 0.85rem; padding-block: 2rem; }
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: color-mix(in srgb, var(--bg) 72%, transparent);
+        backdrop-filter: blur(14px) saturate(160%);
+        -webkit-backdrop-filter: blur(14px) saturate(160%);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+      .brand {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        font-size: 1.05rem;
+        letter-spacing: -0.02em;
+        text-decoration: none;
+        color: var(--text);
+      }
+      .brand-dot { color: var(--primary); margin-inline: 0.2rem; }
+      nav { display: flex; gap: 0.35rem; align-items: center; }
+      nav a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 0.35rem 0.7rem;
+        border-radius: 999px;
+        transition: color 0.15s ease, background 0.15s ease;
+      }
+      nav a:hover { color: var(--text); background: var(--glass); }
+      nav button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: color 0.15s ease, border-color 0.15s ease;
+      }
+      nav button:hover { color: var(--text); border-color: var(--border-strong); }
+      .only-light { display: none; }
+      :global(html[data-theme='light']) .only-light { display: inline-flex; }
+      :global(html[data-theme='light']) .only-dark { display: none; }
+      .site-footer {
+        border-top: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        padding-block: 1.5rem;
+        margin-top: 4rem;
+      }
+      .site-footer p { margin: 0; }
     </style>
   </body>
 </html>

@@ -1,0 +1,36 @@
+---
+// Tabler outline icons (MIT, vendored in src/assets/icons), inlined at build time.
+import alertTriangle from '../assets/icons/alert-triangle.svg?raw';
+import vaccine from '../assets/icons/vaccine.svg?raw';
+import stethoscope from '../assets/icons/stethoscope.svg?raw';
+import school from '../assets/icons/school.svg?raw';
+import search from '../assets/icons/search.svg?raw';
+import moon from '../assets/icons/moon.svg?raw';
+import sun from '../assets/icons/sun.svg?raw';
+import x from '../assets/icons/x.svg?raw';
+import playerPlay from '../assets/icons/player-play.svg?raw';
+import firstAidKit from '../assets/icons/first-aid-kit.svg?raw';
+
+const ICONS: Record<string, string> = {
+  'alert-triangle': alertTriangle,
+  vaccine,
+  stethoscope,
+  school,
+  search,
+  moon,
+  sun,
+  x,
+  'player-play': playerPlay,
+  'first-aid-kit': firstAidKit,
+};
+
+interface Props { name: string; size?: number }
+const { name, size = 20 } = Astro.props;
+const svg = ICONS[name];
+if (!svg) throw new Error(`Unknown icon: ${name}`);
+---
+<span class="icon" style={`--icon-size:${size}px`} set:html={svg} aria-hidden="true"></span>
+<style>
+  .icon { display: inline-flex; align-items: center; flex-shrink: 0; }
+  .icon :global(svg) { width: var(--icon-size); height: var(--icon-size); }
+</style>

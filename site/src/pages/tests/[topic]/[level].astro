@@ -17,7 +17,22 @@ const topic = topicById(quiz.data.topic);
 const levelName = quiz.data.level === 'nurse' ? 'медсестра' : 'лікар';
 ---
 <Base title={`Тест: ${topic?.short ?? quiz.data.topic} (${levelName})`}>
-  <h1>Тест: {topic?.short ?? 'Тема ' + quiz.data.topic}</h1>
-  <p class="muted">Рівень: {levelName} · {quiz.data.questions.length} питань</p>
+  <header class="page-head" style={`--accent: ${topic?.color ?? 'var(--primary)'}`}>
+    <p class="topic-label">Рівень: {levelName} · {quiz.data.questions.length} питань</p>
+    <h1>Тест: {topic?.short ?? 'Тема ' + quiz.data.topic}</h1>
+  </header>
   <Quiz client:load topic={quiz.data.topic} level={quiz.data.level} questions={quiz.data.questions} />
+  <style>
+    .page-head { padding-block: 2.5rem 1.5rem; }
+    .topic-label {
+      color: var(--accent);
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 0 0 0.3rem;
+    }
+    .page-head h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); margin: 0; }
+  </style>
 </Base>

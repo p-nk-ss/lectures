@@ -1,9 +1,30 @@
+---
+import Icon from '../Icon.astro';
+---
 <details class="for-doctors">
-  <summary>🎓 Поглиблено — для лікарів</summary>
+  <summary><Icon name="school" size={17} /> Поглиблено, для лікарів</summary>
   <div class="body"><slot /></div>
 </details>
 <style>
-  .for-doctors { border: 1px solid color-mix(in srgb, #8e4ec6 35%, transparent); background: color-mix(in srgb, #8e4ec6 8%, var(--surface)); border-radius: var(--radius); margin-block: 1rem; }
-  summary { cursor: pointer; font-weight: 700; padding: 0.9rem 1rem; color: #8e4ec6; }
-  .body { padding: 0 1rem 0.9rem; }
+  .for-doctors {
+    border: 1px solid color-mix(in srgb, var(--topic-07) 35%, transparent);
+    background: color-mix(in srgb, var(--topic-07) 8%, var(--surface));
+    border-radius: var(--radius);
+    margin-block: 1.1rem;
+  }
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    cursor: pointer;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    padding: 1rem 1.15rem;
+    color: var(--topic-07);
+    list-style: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '+'; margin-left: auto; font-size: 1.2rem; line-height: 1; }
+  details[open] summary::after { content: '−'; }
+  .body { padding: 0 1.15rem 1rem; }
 </style>

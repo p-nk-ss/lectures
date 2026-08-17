@@ -6,7 +6,10 @@ const terms = (await getCollection('glossary'))
   .sort((a, b) => a.data.term.localeCompare(b.data.term, 'uk'));
 ---
 <Base title="Глосарій — АіІТ">
-  <h1>Глосарій</h1>
+  <header class="page-head">
+    <h1>Глосарій</h1>
+    <p>{terms.length} термінів з анестезіології та інтенсивної терапії.</p>
+  </header>
   <input id="filter" type="search" placeholder="Фільтр термінів…" autocomplete="off" />
   <dl class="terms">
     {terms.map((t) => (
@@ -33,10 +36,32 @@ const terms = (await getCollection('glossary'))
     });
   </script>
   <style>
-    #filter { width: 100%; max-width: 24rem; padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; margin-block: 0.5rem 1.25rem; }
-    .entry { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; margin-block: 0.5rem; }
+    .page-head { padding-block: 2.5rem 1rem; }
+    .page-head h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0 0 0.4rem; }
+    .page-head p { color: var(--text-muted); margin: 0; }
+    #filter {
+      width: 100%;
+      max-width: 24rem;
+      padding: 0.65rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+      margin-block: 0.5rem 1.25rem;
+      transition: border-color 0.15s ease;
+    }
+    #filter:focus { outline: none; border-color: var(--primary); }
+    .terms { margin: 0; display: grid; gap: 0.6rem; max-width: 46rem; }
+    .entry {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.85rem 1.15rem;
+    }
     dt { font-weight: 700; font-family: var(--font-heading); }
     .syn { color: var(--text-muted); font-weight: 400; }
-    dd { margin: 0.25rem 0 0; color: var(--text-muted); }
+    dd { margin: 0.25rem 0 0; color: var(--text-muted); font-size: 0.95rem; }
+    #empty { color: var(--text-muted); }
   </style>
 </Base>

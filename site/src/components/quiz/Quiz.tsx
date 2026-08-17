@@ -54,7 +54,7 @@ export default function Quiz({ topic, level, questions }: Props) {
     return (
       <div class="quiz-result">
         <p class="score">{r.score} / {r.total}</p>
-        <p>{r.score === r.total ? 'Бездоганно! 🎉' : 'Помилки — це навчання.'}</p>
+        <p>{r.score === r.total ? 'Бездоганно!' : 'Помилки теж навчають.'}</p>
         {r.wrongIds.length > 0 && <button onClick={retryWrong}>Повторити помилкові ({r.wrongIds.length})</button>}
         <a href="/tests/">До списку тестів</a>
       </div>
@@ -83,7 +83,7 @@ export default function Quiz({ topic, level, questions }: Props) {
       </ul>
       {checked && (
         <div class={`explain ${isCorrect(q, selected) ? 'ok' : 'bad'}`}>
-          <strong>{isCorrect(q, selected) ? '✅ Правильно.' : '❌ Неправильно.'}</strong> {q.explanation}
+          <strong>{isCorrect(q, selected) ? 'Правильно.' : 'Неправильно.'}</strong> {q.explanation}
         </div>
       )}
       {!checked
