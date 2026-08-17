@@ -1,0 +1,80 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { filterVisible, showDrafts } from '../../lib/visibility';
+import { topicById } from '../../lib/topics';
+
+export async function getStaticPaths() {
+  const all = await getCollection('lectures');
+  const visible = filterVisible(all, { prod: import.meta.env.PROD, showDrafts: showDrafts() });
+  return visible.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+const topicId = entry.id.slice(0, 2);
+const topic = topicById(topicId);
+const quizzes = await getCollection('quizzes', (q) => q.data.topic === topicId);
+const toc = headings.filter((h) => h.depth === 2);
+const fmt = new Intl.DateTimeFormat('uk-UA', { dateStyle: 'long' });
+---
+<Base title={entry.data.title} description={entry.data.description}>
+  <article class="lecture" style={`--accent: ${topic?.color ?? 'var(--primary)'}`}>
+    <header class="lecture-head">
+      {entry.data.status !== 'published' && <p class="draft-badge">Чернетка — не опубліковано</p>}
+      <h1>{entry.data.title}</h1>
+      <p class="meta">Оновлено: {fmt.format(entry.data.updatedAt)}</p>
+    </header>
+    <div class="lecture-grid">
+      {toc.length > 0 && (
+        <nav class="toc" aria-label="Зміст">
+          <strong>Зміст</strong>
+          <ol>{toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+        </nav>
+      )}
+      <div class="prose"><Content /></div>
+    </div>
+    {entry.data.sources.length > 0 && (
+      <section class="sources">
+        <h2>Джерела</h2>
+        <ul>{entry.data.sources.map((s) => <li>{s}</li>)}</ul>
+      </section>
+    )}
+    {quizzes.length > 0 && (
+      <section class="quiz-cta">
+        <h2>Перевір себе</h2>
+        {quizzes.map((q) => (
+          <a class="btn" href={`/tests/${topicId}/${q.data.level}/`}>
+            Тест: {q.data.level === 'nurse' ? 'медсестра' : 'лікар'} →
+          </a>
+        ))}
+      </section>
+    )}
+    <div id="lecture-end" data-slug={entry.id}></div>
+  </article>
+  <script>
+    const el = document.getElementById('lecture-end');
+    const slug = el?.dataset.slug;
+    if (el && slug) {
+      new IntersectionObserver((entries, obs) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          try { localStorage.setItem(`aiti:read:${slug}`, '1'); } catch {}
+          obs.disconnect();
+        }
+      }).observe(el);
+    }
+  </script>
+  <style>
+    .lecture-head h1 { border-left: 5px solid var(--accent); padding-left: 0.75rem; }
+    .draft-badge { display: inline-block; background: var(--warn); color: #000; border-radius: 6px; padding: 0.1rem 0.5rem; font-size: 0.8rem; font-weight: 700; }
+    .meta { color: var(--text-muted); font-size: 0.85rem; }
+    .lecture-grid { display: grid; gap: 2rem; }
+    .toc ol { padding-left: 1.25rem; }
+    .toc a { color: var(--text-muted); text-decoration: none; }
+    .btn { display: inline-block; background: var(--accent); color: #fff; border-radius: 10px; padding: 0.6rem 1rem; text-decoration: none; font-weight: 700; margin-right: 0.5rem; }
+    @media (min-width: 60rem) {
+      .lecture-grid { grid-template-columns: 14rem minmax(0, 1fr); align-items: start; }
+      .toc { position: sticky; top: 4.5rem; }
+    }
+  </style>
+</Base>
