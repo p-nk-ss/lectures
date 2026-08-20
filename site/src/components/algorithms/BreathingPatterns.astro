@@ -1,0 +1,130 @@
+---
+/**
+ * Pathological breathing patterns in coma, drawn as waveforms. A table cannot show the
+ * shape of a breath, and the shape is the whole point: the pattern localises the lesion.
+ *
+ * Hand-drawn SVG — explicit width/height, or the browser stretches it to the container and
+ * scales every stroke and label with it. Each breath is an elliptical arc `a rx ry 0 0 1
+ * w 0`, so amplitude and width are read straight off the path.
+ *
+ * Geometry is tight on purpose: captions are sized for IBM Plex Mono at 12 px (~7.2 px per
+ * character), so each line must stay under ~44 characters or it runs into the waveform
+ * column, and every path must stay under WAVE_W or it runs off the card.
+ */
+
+/** One breath: an arc of width `w` bulging up by `h`. */
+const breath = (w: number, h: number) => `a ${w / 2} ${h} 0 0 1 ${w} 0`;
+/** A flat pause of length `w`. */
+const pause = (w: number) => `l ${w} 0`;
+
+const rows = [
+  {
+    name: 'ЕУПНОЕ',
+    note: ['Рівні за глибиною й частотою вдихи.', 'Норма'],
+    tone: 'ok',
+    path: `M 0 0 ${Array(8).fill(breath(38, 16)).join(' ')}`,
+  },
+  {
+    name: 'ЧЕЙНА–СТОКСА',
+    note: ['Наростання і спад глибини, потім апное.', 'Обидві півкулі; серцева недостатність'],
+    tone: 'accent',
+    path: `M 0 0 ${breath(30, 8)} ${breath(30, 16)} ${breath(30, 26)} ${breath(30, 16)} ${breath(30, 8)} ${pause(60)} ${breath(30, 10)} ${breath(30, 20)}`,
+  },
+  {
+    name: 'КУССМАУЛЯ',
+    note: ['Глибокі шумні вдихи без пауз.', 'Метаболічний ацидоз, кетоацидоз'],
+    tone: 'danger',
+    path: `M 0 0 ${Array(5).fill(breath(60, 30)).join(' ')}`,
+  },
+  {
+    name: 'БІОТА',
+    note: ['Однакові вдихи, що рвуться апное.', 'Ураження стовбура, менінгіт'],
+    tone: 'danger',
+    path: `M 0 0 ${breath(32, 22)} ${breath(32, 22)} ${breath(32, 22)} ${pause(60)} ${breath(32, 22)} ${breath(32, 22)} ${breath(32, 22)}`,
+  },
+  {
+    name: 'АПНЕЙСТИЧНЕ',
+    note: ['Затримка на висоті вдиху.', 'Ураження мосту — грізна ознака'],
+    tone: 'danger',
+    path: 'M 0 0 l 10 -28 l 60 0 l 10 28 l 22 0 l 10 -28 l 60 0 l 10 28 l 22 0 l 10 -28 l 60 0 l 10 28',
+  },
+];
+
+const ROW = 104;
+const TOP = 46;
+const height = TOP + rows.length * ROW + 10;
+const WAVE_X = 400;
+const WAVE_END = 716;
+---
+<svg
+  class="breath-patterns"
+  viewBox={`0 0 760 ${height}`}
+  width="760"
+  height={height}
+  role="img"
+  aria-label="Патологічні типи дихання при комі: еупное, Чейна–Стокса, Куссмауля, Біота, апнейстичне"
+>
+  <text class="axis" x="24" y="26">ТИПИ ДИХАННЯ: ФОРМА ВКАЗУЄ НА РІВЕНЬ УРАЖЕННЯ</text>
+
+  {rows.map((r, i) => {
+    const y = TOP + i * ROW;
+    const base = y + 62;
+    return (
+      <g>
+        <rect class="row" x="24" y={y} width="712" height="88" />
+        <text class={`name ${r.tone}`} x="44" y={y + 26}>{r.name}</text>
+        <text class="note" x="44" y={y + 50}>{r.note[0]}</text>
+        <text class="note" x="44" y={y + 68}>{r.note[1]}</text>
+        <line class="base" x1={WAVE_X} y1={base} x2={WAVE_END} y2={base} />
+        <path class={`wave ${r.tone}`} d={r.path} transform={`translate(${WAVE_X} ${base})`} />
+      </g>
+    );
+  })}
+</svg>
+
+<style>
+  .breath-patterns {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-inline: auto;
+  }
+  .row {
+    fill: var(--surface-2);
+    stroke: var(--ink);
+    stroke-width: 3;
+  }
+  .base {
+    stroke: var(--muted-border);
+    stroke-width: 2;
+  }
+  .wave {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .wave.ok { stroke: var(--ok); }
+  .wave.accent { stroke: var(--accent); }
+  .wave.danger { stroke: var(--danger); }
+  /* SVG text defaults to a black fill, so every text class needs an explicit one. */
+  .axis {
+    font-family: var(--font-display);
+    font-size: 10px;
+    fill: var(--accent);
+    letter-spacing: 0.5px;
+  }
+  .name {
+    font-family: var(--font-display);
+    font-size: 11px;
+    fill: var(--text);
+  }
+  .name.ok { fill: var(--ok); }
+  .name.accent { fill: var(--accent); }
+  .name.danger { fill: var(--danger); }
+  .note {
+    font-family: var(--font-body);
+    font-size: 12px;
+    fill: var(--text-soft);
+  }
+</style>

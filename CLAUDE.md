@@ -83,7 +83,7 @@ Layout gotchas:
 - **Quiz scene art** (`public/images/quiz/`) is decorative UI, not medical illustration, so the rule above does not gate it — but its licensing is *not* resolved: the sources are agency stock (Freepik, PngTree) supplied by the author on the understanding that this is for personal use. Do not present them as open-licensed anywhere. The three files are derived, never hand-edited: `site/scripts/build-quiz-sprites.mjs` rebuilds them from `images/tests/` and documents what had to be stripped from each (a painted "transparency" checkerboard and a brand wedge on the doctor, watermark text on the student, a 4032px source for the backdrop). Change the art by editing that script and re-running it.
 - Publication pipeline: `draft` → review doc → author reads and approves → set `status: published` → merge to `main`.
 
-Written so far: **01, 02, 03, 04, 05, 06** — all `status: draft`, each with a review doc, two quizzes and its glossary terms. New lectures repeat Task 12 of `docs/superpowers/plans/2026-08-17-lectures-site.md`.
+Written so far: **01, 02, 03, 04, 05, 06, 07** — all `status: draft`, each with a review doc, two quizzes and its glossary terms. New lectures repeat Task 12 of `docs/superpowers/plans/2026-08-17-lectures-site.md`.
 
 **Audit the numbers, not just the claims.** In topic 04 the prose was current — SCAI, CULPRIT-SHOCK, ADVOR were all there — while five figures had drifted from the guideline they came from (oxygen threshold, starting doses of furosemide and nitroglycerine, urinary catheterisation, glycaemic units). Pull dosing tables from the guideline itself; a supplementary table is often where the numbers actually live (ESC 2021 keeps IV vasodilator doses in Supplementary Table 21, not in the main text).
 
