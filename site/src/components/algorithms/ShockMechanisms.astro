@@ -101,6 +101,14 @@
     stroke-width: 4;
     fill: none;
   }
+  /* SVG text defaults to a black fill, so every text class needs an explicit one —
+     a missing rule here is invisible in review and unreadable on the dark page. */
+  .axis {
+    font-family: var(--font-display);
+    font-size: 10px;
+    fill: var(--accent);
+    letter-spacing: 0.5px;
+  }
   .head {
     font-family: var(--font-display);
     font-size: 12px;
