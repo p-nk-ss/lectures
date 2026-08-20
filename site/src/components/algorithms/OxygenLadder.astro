@@ -1,0 +1,94 @@
+---
+/**
+ * Escalation of respiratory support, from nasal cannulae to invasive ventilation.
+ * Hand-drawn SVG — explicit width/height, or the browser stretches it to the container and
+ * scales every stroke and label with it. Rows are sized for IBM Plex Mono (~7.8 px per
+ * character at 13 px), so captions stay on one line.
+ *
+ * Flow rates are the ones named in the BTS oxygen guideline; no FiO2 percentages are shown
+ * for devices where that guideline does not state one.
+ */
+const rungs = [
+  { name: 'НОСОВІ КАНЮЛІ', flow: '1–6 л/хв', note: 'Комфортні: пацієнт може говорити, пити, їсти', tone: 'ok' },
+  { name: 'ПРОСТА ЛИЦЕВА МАСКА', flow: '5–10 л/хв', note: 'Середні дози; нижче 5 л/хв накопичується CO₂', tone: 'ok' },
+  { name: 'МАСКА ВЕНТУРІ 24 % / 28 %', flow: '2–4 л/хв', note: 'Точна частка кисню — вибір при ризику гіперкапнії', tone: 'accent' },
+  { name: 'МАСКА З РЕЗЕРВУАРОМ', flow: '10–15 л/хв', note: 'Висока концентрація: критичний стан, реанімація', tone: 'accent' },
+  { name: 'ВИСОКОПОТОКОВА ОКСИГЕНОТЕРАПІЯ', flow: '30–60 л/хв', note: 'Зігрітий зволожений потік, промивання мертвого простору', tone: 'warn' },
+  { name: 'НЕІНВАЗИВНА ВЕНТИЛЯЦІЯ (CPAP / BiPAP)', flow: 'підтримка тиском', note: 'Бере на себе роботу дихання; свідомість має бути збережена', tone: 'warn' },
+  { name: 'ІНТУБАЦІЯ ТА ІНВАЗИВНА ШВЛ', flow: 'повний контроль', note: 'Коли попередні щаблі не тримають або немає захисту шляхів', tone: 'danger' },
+];
+const ROW = 76;
+const TOP = 56;
+const height = TOP + rungs.length * ROW + 16;
+---
+<svg
+  class="o2-ladder"
+  viewBox={`0 0 760 ${height}`}
+  width="760"
+  height={height}
+  role="img"
+  aria-label="Щаблі респіраторної підтримки від носових канюль до інвазивної штучної вентиляції легень"
+>
+  <text class="axis" x="30" y="26" >ЕСКАЛАЦІЯ РЕСПІРАТОРНОЇ ПІДТРИМКИ</text>
+  <text class="axis dim" x="730" y="26" text-anchor="end">ЗРОСТАННЯ ІНВАЗИВНОСТІ ↓</text>
+
+  {rungs.map((r, i) => {
+    const y = TOP + i * ROW;
+    return (
+      <g>
+        <rect class={`rung ${r.tone}`} x="30" y={y} width="700" height="60" />
+        <text class="step" x="46" y={y + 26}>{String(i + 1).padStart(2, '0')}</text>
+        <text class="name" x="86" y={y + 26}>{r.name}</text>
+        <text class="flow" x="714" y={y + 26} text-anchor="end">{r.flow}</text>
+        <text class="note" x="86" y={y + 47}>{r.note}</text>
+      </g>
+    );
+  })}
+</svg>
+
+<style>
+  .o2-ladder {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-inline: auto;
+  }
+  .rung {
+    fill: var(--surface-2);
+    stroke: var(--ink);
+    stroke-width: 4;
+  }
+  .rung.ok { stroke: var(--ok); }
+  .rung.accent { stroke: var(--accent); }
+  .rung.warn { stroke: #ffa74f; }
+  .rung.danger { stroke: var(--danger); }
+  .axis {
+    font-family: var(--font-display);
+    font-size: 10px;
+    fill: var(--accent);
+    letter-spacing: 0.5px;
+  }
+  .axis.dim { fill: var(--muted); }
+  .step {
+    font-family: var(--font-display);
+    font-size: 12px;
+    fill: var(--muted);
+  }
+  .name {
+    font-family: var(--font-display);
+    font-size: 10px;
+    fill: var(--text);
+    letter-spacing: 0.3px;
+  }
+  .flow {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    fill: var(--accent);
+  }
+  .note {
+    font-family: var(--font-body);
+    font-size: 13px;
+    fill: var(--text-soft);
+  }
+</style>
