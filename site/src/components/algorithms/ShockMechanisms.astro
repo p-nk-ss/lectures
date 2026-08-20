@@ -1,0 +1,125 @@
+---
+/**
+ * The four mechanisms of shock as a plumbing model: too little fluid, a failing pump, a
+ * clamped pipe, and pipes that are too wide. Hand-drawn SVG — explicit width/height, or the
+ * browser stretches it to the container and scales every stroke and label with it. Captions
+ * are sized for IBM Plex Mono (~7.2 px per character at 12 px).
+ */
+---
+<svg
+  class="shock-mech"
+  viewBox="0 0 760 560"
+  width="760"
+  height="560"
+  role="img"
+  aria-label="Чотири механізми шоку: гіповолемічний — мало об'єму, кардіогенний — насос не качає, обструктивний — перешкода потоку, дистрибутивний — судини розширені"
+>
+  <text class="axis" x="380" y="24" text-anchor="middle">ОДИН РЕЗУЛЬТАТ — ГІПОПЕРФУЗІЯ. ЧОТИРИ РІЗНІ ПРИЧИНИ</text>
+
+  <!-- 1. hypovolaemic -->
+  <rect class="cell danger" x="24" y="44" width="348" height="230" />
+  <text class="head" x="44" y="76">1 · ГІПОВОЛЕМІЧНИЙ</text>
+  <!-- tank half empty -->
+  <rect class="pipe" x="44" y="94" width="76" height="64" />
+  <rect class="fill-lo" x="48" y="130" width="68" height="24" />
+  <text class="tag" x="132" y="118">В системі</text>
+  <text class="tag" x="132" y="136">замало рідини</text>
+  <text class="body" x="44" y="188">Крововтрата, опіки, блювання,</text>
+  <text class="body" x="44" y="208">діарея, «третій простір».</text>
+  <text class="sign" x="44" y="240">Шкіра холодна · ЦВТ низький</text>
+  <text class="sign" x="44" y="260">Викид ↓ · Опір судин ↑</text>
+
+  <!-- 2. cardiogenic -->
+  <rect class="cell danger" x="388" y="44" width="348" height="230" />
+  <text class="head" x="408" y="76">2 · КАРДІОГЕННИЙ</text>
+  <!-- pump with a cross -->
+  <circle class="pipe" cx="446" cy="126" r="32" />
+  <path class="broken" d="M430 110 L462 142 M462 110 L430 142" />
+  <text class="tag" x="496" y="118">Насос</text>
+  <text class="tag" x="496" y="136">не качає</text>
+  <text class="body" x="408" y="188">Інфаркт, аритмія, міокардит,</text>
+  <text class="body" x="408" y="208">клапанна катастрофа.</text>
+  <text class="sign" x="408" y="240">Шкіра холодна · ЦВТ високий</text>
+  <text class="sign" x="408" y="260">Викид ↓ · Застій у легенях</text>
+
+  <!-- 3. obstructive -->
+  <rect class="cell accent" x="24" y="292" width="348" height="230" />
+  <text class="head" x="44" y="324">3 · ОБСТРУКТИВНИЙ</text>
+  <!-- pipe with a clamp -->
+  <rect class="pipe" x="44" y="352" width="76" height="30" />
+  <rect class="clamp" x="72" y="344" width="14" height="46" />
+  <text class="tag" x="132" y="366">Перешкода</text>
+  <text class="tag" x="132" y="384">потоку</text>
+  <text class="body" x="44" y="436">Напружений пневмоторакс,</text>
+  <text class="body" x="44" y="456">тампонада серця, масивна ТЕЛА.</text>
+  <text class="sign" x="44" y="488">Шкіра холодна · ЦВТ високий</text>
+  <text class="sign" x="44" y="508">Лікує втручання, а не інфузія</text>
+
+  <!-- 4. distributive -->
+  <rect class="cell ok" x="388" y="292" width="348" height="230" />
+  <text class="head" x="408" y="324">4 · ДИСТРИБУТИВНИЙ</text>
+  <!-- widened pipe -->
+  <rect class="pipe" x="408" y="346" width="76" height="42" />
+  <path class="arrows" d="M418 340 L418 330 M474 340 L474 330 M418 394 L418 404 M474 394 L474 404" />
+  <text class="tag" x="496" y="360">Судини</text>
+  <text class="tag" x="496" y="378">розширені</text>
+  <text class="body" x="408" y="436">Сепсис, анафілаксія,</text>
+  <text class="body" x="408" y="456">нейрогенний шок.</text>
+  <text class="sign" x="408" y="488">Шкіра часто ТЕПЛА · ЦВТ низький</text>
+  <text class="sign" x="408" y="508">Опір судин ↓ · Викид ↑ або ↓</text>
+</svg>
+
+<style>
+  .shock-mech {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-inline: auto;
+  }
+  .cell {
+    fill: var(--surface-2);
+    stroke: var(--ink);
+    stroke-width: 4;
+  }
+  .cell.danger { stroke: var(--danger); }
+  .cell.accent { stroke: var(--accent); }
+  .cell.ok { stroke: var(--ok); }
+  .pipe {
+    fill: none;
+    stroke: var(--text-soft);
+    stroke-width: 4;
+  }
+  .fill-lo { fill: var(--danger); }
+  .broken {
+    stroke: var(--danger);
+    stroke-width: 5;
+    fill: none;
+  }
+  .clamp { fill: var(--accent); }
+  .arrows {
+    stroke: var(--ok);
+    stroke-width: 4;
+    fill: none;
+  }
+  .head {
+    font-family: var(--font-display);
+    font-size: 12px;
+    fill: var(--accent);
+  }
+  .tag {
+    font-family: var(--font-display);
+    font-size: 10px;
+    fill: var(--text);
+  }
+  .body {
+    font-family: var(--font-body);
+    font-size: 13px;
+    fill: var(--text-body);
+  }
+  .sign {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    fill: var(--muted);
+  }
+</style>
