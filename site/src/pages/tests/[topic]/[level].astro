@@ -23,9 +23,10 @@ const levelName = quiz.data.level === 'nurse' ? 'медсестра' : 'ліка
   </header>
   <Quiz client:load topic={quiz.data.topic} level={quiz.data.level} questions={quiz.data.questions} />
   <style>
-    .page-head { padding-block: 3.25rem 2rem; }
+    /* Kept short: on a laptop every pixel here is a pixel the run does not get. */
+    .page-head { padding-block: 1.75rem 1.25rem; }
     .topic-label {
-      margin: 0 0 1.125rem;
+      margin: 0 0 0.75rem;
       font-family: var(--font-display);
       font-size: 10px;
       line-height: 1.8;
@@ -33,7 +34,7 @@ const levelName = quiz.data.level === 'nurse' ? 'медсестра' : 'ліка
     }
     .page-head h1 {
       margin: 0;
-      font-size: clamp(17px, 2.8vw, 28px);
+      font-size: clamp(15px, 2.2vw, 22px);
       line-height: 1.5;
       text-shadow: 4px 4px 0 var(--title-shadow);
     }
