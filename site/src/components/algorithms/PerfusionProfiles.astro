@@ -1,0 +1,95 @@
+---
+/**
+ * Perfusion/congestion profiles of acute heart failure (Forrester, as used by ESC 2021):
+ * congestion on one axis, peripheral perfusion on the other. Hand-drawn SVG — explicit
+ * width/height, or the browser stretches it to the container and scales every stroke and
+ * label with it. Box widths are sized for IBM Plex Mono, which is far wider than a
+ * proportional face: ~7.8 px per character at 13 px.
+ */
+---
+<svg
+  class="profiles"
+  viewBox="0 0 720 540"
+  width="720"
+  height="540"
+  role="img"
+  aria-label="Чотири профілі гострої серцевої недостатності за застоєм і перфузією: теплий сухий, теплий вологий, холодний сухий, холодний вологий"
+>
+  <!-- axis captions -->
+  <text class="axis" x="360" y="26" text-anchor="middle">ЗАСТІЙ У МАЛОМУ КОЛІ</text>
+  <text class="axis" x="196" y="56" text-anchor="middle">НЕМАЄ · «СУХИЙ»</text>
+  <text class="axis" x="524" y="56" text-anchor="middle">Є · «ВОЛОГИЙ»</text>
+  <text class="axis" x="24" y="300" text-anchor="middle" transform="rotate(-90 24 300)">ПЕРИФЕРИЧНА ПЕРФУЗІЯ</text>
+  <text class="axis" x="52" y="176" text-anchor="middle" transform="rotate(-90 52 176)">ЗБЕРЕЖЕНА</text>
+  <text class="axis" x="52" y="410" text-anchor="middle" transform="rotate(-90 52 410)">ЗНИЖЕНА</text>
+
+  <!-- warm & dry -->
+  <rect class="cell ok" x="72" y="74" width="272" height="196" />
+  <text class="head" x="92" y="106">ТЕПЛИЙ · СУХИЙ</text>
+  <text class="body" x="92" y="140">Компенсований стан:</text>
+  <text class="body" x="92" y="164">перфузія і волемія в нормі.</text>
+  <text class="body" x="92" y="196">Тактика: шукати інший</text>
+  <text class="body" x="92" y="220">діагноз, оптимізувати</text>
+  <text class="body" x="92" y="244">базову терапію.</text>
+
+  <!-- warm & wet -->
+  <rect class="cell warn" x="376" y="74" width="272" height="196" />
+  <text class="head" x="396" y="106">ТЕПЛИЙ · ВОЛОГИЙ</text>
+  <text class="body" x="396" y="140">Найчастіший профіль:</text>
+  <text class="body" x="396" y="164">набряк легень, АТ у нормі</text>
+  <text class="body" x="396" y="188">або підвищений.</text>
+  <text class="body" x="396" y="220">Тактика: петльовий</text>
+  <text class="body" x="396" y="244">діуретик ± вазодилататор.</text>
+
+  <!-- cold & dry -->
+  <rect class="cell warn" x="72" y="298" width="272" height="196" />
+  <text class="head" x="92" y="330">ХОЛОДНИЙ · СУХИЙ</text>
+  <text class="body" x="92" y="364">Гіпоперфузія без застою —</text>
+  <text class="body" x="92" y="388">часто гіповолемія.</text>
+  <text class="body" x="92" y="420">Тактика: обережне</text>
+  <text class="body" x="92" y="444">заповнення під контролем,</text>
+  <text class="body" x="92" y="468">далі інотроп за потреби.</text>
+
+  <!-- cold & wet -->
+  <rect class="cell danger" x="376" y="298" width="272" height="196" />
+  <text class="head danger-text" x="396" y="330">ХОЛОДНИЙ · ВОЛОГИЙ</text>
+  <text class="body" x="396" y="364">Профіль кардіогенного</text>
+  <text class="body" x="396" y="388">шоку: застій + гіпоперфузія.</text>
+  <text class="body" x="396" y="420">Тактика: вазопресор,</text>
+  <text class="body" x="396" y="444">інотроп, етіологічне</text>
+  <text class="body" x="396" y="468">втручання, МПК.</text>
+</svg>
+
+<style>
+  .profiles {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-inline: auto;
+  }
+  .cell {
+    fill: var(--surface-2);
+    stroke: var(--ink);
+    stroke-width: 4;
+  }
+  .cell.ok { stroke: var(--ok); }
+  .cell.warn { stroke: var(--accent); }
+  .cell.danger { stroke: var(--danger); }
+  .axis {
+    font-family: var(--font-display);
+    font-size: 10px;
+    fill: var(--muted);
+    letter-spacing: 0.5px;
+  }
+  .head {
+    font-family: var(--font-display);
+    font-size: 12px;
+    fill: var(--accent);
+  }
+  .head.danger-text { fill: var(--danger); }
+  .body {
+    font-family: var(--font-body);
+    font-size: 13px;
+    fill: var(--text-body);
+  }
+</style>
