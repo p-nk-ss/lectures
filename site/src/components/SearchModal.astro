@@ -15,9 +15,11 @@ import Icon from './Icon.astro';
     if (inited) return;
     inited = true;
     try {
-      // Served from /pagefind/ in the built site; absent in dev.
+      // Served from /pagefind/ in the built site; absent in dev. The URL is assembled at
+      // runtime so Vite's import-analysis leaves it alone (a literal 500s the dev server).
       // pagefind-ui.js is UMD: it attaches PagefindUI to window, module namespace is empty.
-      await import(/* @vite-ignore */ '/pagefind/pagefind-ui.js' as string);
+      const bundle = ['', 'pagefind', 'pagefind-ui.js'].join('/');
+      await import(/* @vite-ignore */ bundle);
       const PagefindUI = (window as any).PagefindUI;
       if (!PagefindUI) throw new Error('PagefindUI not loaded');
       new PagefindUI({ element: '#search', showSubResults: true, translations: { placeholder: 'Пошук по лекціях…' } });
@@ -39,28 +41,24 @@ import Icon from './Icon.astro';
 <style>
   dialog {
     width: min(40rem, 92vw);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
+    border: var(--bw) solid var(--ink);
     background: var(--surface);
     color: var(--text);
-    padding: 1.25rem;
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+    padding: 1.375rem;
+    box-shadow: var(--shadow-hard-xl);
   }
-  dialog::backdrop {
-    background: rgba(5, 6, 12, 0.6);
-    backdrop-filter: blur(4px);
-  }
+  dialog::backdrop { background: rgba(15, 16, 32, 0.72); }
   #search-close {
     float: right;
     display: inline-flex;
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 999px;
+    background: var(--surface-2);
+    border: var(--bw-sm) solid var(--ink);
     padding: 0.3rem;
     cursor: pointer;
-    color: var(--text-muted);
+    color: var(--muted);
   }
-  #search-close:hover { color: var(--text); border-color: var(--border-strong); }
+  #search-close:hover { color: var(--accent); border-color: var(--accent); }
+  #search-fallback { color: var(--muted); font-size: 0.9375rem; }
   /* Pagefind UI theme alignment */
-  #search { --pagefind-ui-primary: var(--primary); --pagefind-ui-text: var(--text); --pagefind-ui-background: var(--surface); --pagefind-ui-border: var(--border); --pagefind-ui-tag: var(--surface-2); --pagefind-ui-border-radius: var(--radius-sm); --pagefind-ui-font: var(--font-body); }
+  #search { --pagefind-ui-primary: var(--accent); --pagefind-ui-text: var(--text); --pagefind-ui-background: var(--surface); --pagefind-ui-border: var(--ink); --pagefind-ui-tag: var(--surface-2); --pagefind-ui-border-radius: 0; --pagefind-ui-border-width: 3px; --pagefind-ui-font: var(--font-body); }
 </style>

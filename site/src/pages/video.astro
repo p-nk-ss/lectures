@@ -1,0 +1,97 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import VideoEmbed from '../components/VideoEmbed.astro';
+import { filterVisible, showDrafts } from '../lib/visibility';
+import { topicById } from '../lib/topics';
+import { collectVideos } from '../lib/videos';
+
+const all = await getCollection('lectures');
+const visible = filterVisible(all, { prod: import.meta.env.PROD, showDrafts: showDrafts() })
+  .filter((l) => l.data.order <= 8)
+  .sort((a, b) => a.data.order - b.data.order);
+
+// The embeds in the MDX are the source of truth; headings from render() give the real
+// anchor ids, so every entry can link to the exact section it appears in.
+const groups = await Promise.all(
+  visible.map(async (entry) => {
+    const { headings } = await render(entry);
+    const anchor = new Map(headings.filter((h) => h.depth === 2).map((h) => [h.text, h.slug]));
+    return {
+      entry,
+      topic: topicById(entry.id.slice(0, 2)),
+      videos: collectVideos(entry.body ?? '').map((v) => ({ ...v, slug: anchor.get(v.section) })),
+    };
+  }),
+);
+const withVideos = groups.filter((g) => g.videos.length > 0);
+const total = withVideos.reduce((n, g) => n + g.videos.length, 0);
+---
+<Base
+  title="Відео — АіІТ"
+  description="Усі відеоматеріали лекцій з анестезіології та інтенсивної терапії з посиланнями на розділи."
+>
+  <header class="page-head">
+    <p class="kicker"><span class="g">▸</span> ВІДЕОМАТЕРІАЛИ</p>
+    <h1>ВІДЕО</h1>
+    <p class="lead">
+      {total > 0
+        ? `${total} відео з лекцій — кожне з посиланням на розділ, де воно трапляється.`
+        : 'Поки жодне відео не додано до лекцій.'}
+    </p>
+  </header>
+
+  {withVideos.map((g) => (
+    <section class="lecture-group">
+      <h2>LVL {g.entry.id.slice(0, 2)} · {(g.topic?.short ?? g.entry.data.title).toUpperCase()}</h2>
+      <div class="videos">
+        {g.videos.map((v) => (
+          <article class="video-card">
+            <VideoEmbed id={v.id} title={v.title} />
+            {v.description && <p class="descr">{v.description}</p>}
+            <a class="where" href={`/lektsiyi/${g.entry.id}/${v.slug ? `#${v.slug}` : ''}`}>
+              <span class="g">▸</span> {v.section || 'На початку лекції'}
+            </a>
+          </article>
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <style>
+    .page-head { padding-block: 3.25rem 1.5rem; }
+    .page-head h1 {
+      margin: 0 0 0.875rem;
+      font-size: clamp(18px, 3vw, 30px);
+      line-height: 1.5;
+      text-shadow: 4px 4px 0 var(--title-shadow);
+    }
+    .lead { color: var(--text-soft); margin: 0; }
+
+    .lecture-group { margin-block: 2.75rem; }
+    .lecture-group h2 {
+      margin: 0 0 1.25rem;
+      font-family: var(--font-display);
+      font-size: 10px;
+      line-height: 1.8;
+      color: var(--accent);
+    }
+
+    .videos { display: grid; gap: 1.75rem; grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr)); }
+    /* Column flex, not grid: titles wrap to different heights, and `margin-top: auto` on
+       the link keeps the "where it appears" row aligned across the whole shelf. */
+    .video-card { display: flex; flex-direction: column; gap: 0.75rem; }
+    /* The embed brings its own vertical margin, which the grid gap already covers. */
+    .video-card :global(button.yt) { margin-block: 0; max-width: none; }
+    .descr { margin: 0; font-size: 0.9375rem; line-height: 1.6; color: var(--text-soft); }
+    .where {
+      margin-top: auto;
+      align-self: start;
+      font-size: 0.875rem;
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+    }
+    .where:hover, .where:focus-visible { color: var(--accent); border-bottom-color: var(--accent); }
+  </style>
+</Base>

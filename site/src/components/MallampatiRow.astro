@@ -1,0 +1,66 @@
+---
+// The Commons illustration ships as a 2×2 grid; the lecture wants the four classes in a
+// row. Rather than restructure the source SVG (and its attribution), each cell shows the
+// same file scaled to 200% and offset by one quadrant, so the crop is exact and the
+// original file stays untouched.
+const CLASSES = [
+  { c: 0, r: 0, label: 'І', caption: 'видно дужки, мʼяке піднебіння та язичок' },
+  { c: 1, r: 0, label: 'ІІ', caption: 'язичок частково прикритий коренем язика' },
+  { c: 0, r: 1, label: 'ІІІ', caption: 'видно лише основу язичка' },
+  { c: 1, r: 1, label: 'IV', caption: 'язичок не видно' },
+];
+---
+<figure class="mallampati">
+  <div class="frame">
+    {CLASSES.map((k) => (
+      <span class="cell" style={`--c:${k.c}; --r:${k.r}`}>
+        <img src="/images/lectures/01/mallampati.svg" alt={`Клас ${k.label} за Маллампаті: ${k.caption}`} loading="lazy" />
+      </span>
+    ))}
+  </div>
+  <figcaption>
+    Класифікація за Маллампаті: {CLASSES.map((k, i) => (
+      <>{i > 0 ? '; ' : ''}<b>{k.label}</b> — {k.caption}</>
+    ))}.
+    <span class="lic"> · Jmarchn, CC BY-SA 3.0, Wikimedia Commons</span>
+  </figcaption>
+</figure>
+<style>
+  .mallampati { margin: 1.5rem 0; }
+  .frame {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    /* Light frame: the illustration has a transparent background and dark class numerals. */
+    background: var(--text);
+    border: var(--bw) solid var(--ink);
+    box-shadow: var(--shadow-hard);
+  }
+  .cell {
+    position: relative;
+    overflow: hidden;
+    /* One quadrant of the 420×577 source. */
+    aspect-ratio: 210 / 289;
+  }
+  .cell img {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    /* The prose stylesheet caps images at 100%; unclamped here, or the 2× crop would be
+       squashed to single width and the mouths would come out elongated. */
+    max-width: none;
+    left: calc(var(--c) * -100%);
+    top: calc(var(--r) * -100%);
+  }
+  figcaption {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--muted);
+    margin-top: 0.75rem;
+  }
+  figcaption b { color: var(--text-soft); font-weight: 600; }
+  .lic { opacity: 0.8; }
+  /* Four across gets too cramped on a phone; two rows of two still read left-to-right. */
+  @media (max-width: 34rem) {
+    .frame { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>

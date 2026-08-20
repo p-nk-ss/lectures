@@ -7,8 +7,9 @@ const terms = (await getCollection('glossary'))
 ---
 <Base title="Глосарій — АіІТ">
   <header class="page-head">
-    <h1>Глосарій</h1>
-    <p>{terms.length} термінів з анестезіології та інтенсивної терапії.</p>
+    <p class="kicker"><span class="g">▸</span> КОДЕКС ТЕРМІНІВ</p>
+    <h1>ГЛОСАРІЙ</h1>
+    <p class="lead">{terms.length} термінів з анестезіології та інтенсивної терапії.</p>
   </header>
   <input id="filter" type="search" placeholder="Фільтр термінів…" autocomplete="off" />
   <dl class="terms">
@@ -36,32 +37,38 @@ const terms = (await getCollection('glossary'))
     });
   </script>
   <style>
-    .page-head { padding-block: 2.5rem 1rem; }
-    .page-head h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0 0 0.4rem; }
-    .page-head p { color: var(--text-muted); margin: 0; }
+    .page-head { padding-block: 3.25rem 1.5rem; }
+    .page-head h1 {
+      margin: 0 0 0.875rem;
+      font-size: clamp(18px, 3vw, 30px);
+      line-height: 1.5;
+      text-shadow: 4px 4px 0 var(--title-shadow);
+    }
+    .lead { color: var(--text-soft); margin: 0; }
     #filter {
       width: 100%;
-      max-width: 24rem;
-      padding: 0.65rem 1rem;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: var(--surface);
+      max-width: 26rem;
+      padding: 0.875rem 1.1rem;
+      border: var(--bw) solid var(--ink);
+      box-shadow: var(--shadow-hard);
+      background: var(--surface-2);
       color: var(--text);
       font: inherit;
-      margin-block: 0.5rem 1.25rem;
-      transition: border-color 0.15s ease;
+      margin-block: 0.5rem 1.75rem;
     }
-    #filter:focus { outline: none; border-color: var(--primary); }
-    .terms { margin: 0; display: grid; gap: 0.6rem; max-width: 46rem; }
+    #filter:focus { outline: none; border-color: var(--accent); }
+    #filter::placeholder { color: var(--muted); }
+
+    .terms { margin: 0; display: grid; gap: 1rem; max-width: 52rem; }
     .entry {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 0.85rem 1.15rem;
+      border: var(--bw) solid var(--ink);
+      box-shadow: var(--shadow-hard);
+      padding: 1.125rem 1.375rem;
     }
-    dt { font-weight: 700; font-family: var(--font-heading); }
-    .syn { color: var(--text-muted); font-weight: 400; }
-    dd { margin: 0.25rem 0 0; color: var(--text-muted); font-size: 0.95rem; }
-    #empty { color: var(--text-muted); }
+    dt { font-weight: 600; color: var(--accent); }
+    .syn { color: var(--muted); font-weight: 400; }
+    dd { margin: 0.4rem 0 0; color: var(--text-soft); font-size: 0.9375rem; line-height: 1.6; }
+    #empty { color: var(--muted); }
   </style>
 </Base>

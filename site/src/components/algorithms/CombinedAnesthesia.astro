@@ -1,0 +1,48 @@
+{/* Combined technique: intravenous induction, inhalational maintenance, emergence.
+    Laid out vertically like the airway ladder — a wide horizontal timeline would shrink
+    to unreadable text on a phone, since Algorithm fits the SVG to the column.
+    Intrinsic width/height keep it at 1:1; box width fits the longest caption in
+    IBM Plex Mono (~46 chars at 12.5px ≈ 345px). */}
+<svg width="520" height="420" viewBox="0 0 520 420" role="img" aria-label="Етапи комбінованої анестезії: індукція, підтримка, пробудження">
+  <defs>
+    {/* Arrow on a 4px pixel grid — the same unit as the 4px card borders. */}
+    <symbol id="ca-arrow" viewBox="0 0 20 24">
+      <rect x="8" y="0" width="4" height="8" />
+      <rect x="0" y="8" width="20" height="4" />
+      <rect x="2" y="12" width="16" height="4" />
+      <rect x="6" y="16" width="8" height="4" />
+      <rect x="8" y="20" width="4" height="4" />
+    </symbol>
+  </defs>
+  <style>
+    .box { fill: var(--surface); stroke-width: 4; }
+    .iv { stroke: var(--ok); }
+    .gas { stroke: var(--accent); }
+    .lane { fill: var(--surface-2); stroke: var(--ink); stroke-width: 4; }
+    .k { font: 400 10px var(--font-display, monospace); }
+    .t { font: 600 15px var(--font-body, monospace); fill: var(--text); }
+    .t-small { font: 400 12.5px var(--font-body, monospace); fill: var(--text-soft); }
+    .arrow { fill: var(--accent); }
+  </style>
+
+  <rect class="box iv" x="30" y="10" width="460" height="84" />
+  <text class="k" x="52" y="38" style="fill: var(--ok)">ЕТАП 1 · ВНУТРІШНЬОВЕННО</text>
+  <text class="t" x="52" y="62">Індукція</text>
+  <text class="t-small" x="52" y="82">пропофол або кетамін — ефект за секунди</text>
+  <use class="arrow" href="#ca-arrow" x="250" y="96" width="20" height="24" />
+
+  <rect class="box gas" x="30" y="124" width="460" height="84" />
+  <text class="k" x="52" y="152" style="fill: var(--accent)">ЕТАП 2 · ІНГАЛЯЦІЙНО</text>
+  <text class="t" x="52" y="176">Підтримка</text>
+  <text class="t-small" x="52" y="196">севофлуран — керована глибина, титрування</text>
+  <use class="arrow" href="#ca-arrow" x="250" y="210" width="20" height="24" />
+
+  <rect class="box iv" x="30" y="238" width="460" height="84" />
+  <text class="k" x="52" y="266" style="fill: var(--ok)">ЕТАП 3</text>
+  <text class="t" x="52" y="290">Пробудження</text>
+  <text class="t-small" x="52" y="310">припинення подачі газу, відновлення рефлексів</text>
+
+  <rect class="lane" x="30" y="342" width="460" height="64" />
+  <text class="t-small" x="52" y="370">Неінгаляційний шлях дає швидкий старт,</text>
+  <text class="t-small" x="52" y="390">інгаляційний — керовану глибину.</text>
+</svg>

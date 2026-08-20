@@ -7,10 +7,190 @@ const term = (await getCollection('glossary')).find((t) => t.id === id);
 if (!term) throw new Error(`Glossary term not found: ${id}`);
 ---
 <span class="term" tabindex="0">
-  <slot /><span class="term-tip" role="tooltip"><strong>{term.data.term}.</strong> {term.data.definition}</span>
+  <slot /><span class="term-tip" role="tooltip">
+    <span class="tip-ink" aria-hidden="true"></span>
+    <span class="tip-fill" aria-hidden="true"></span>
+    <img class="tip-avatar px" src="/icons/professor.png" alt="" width="70" height="80" />
+    <span class="tip-text"><strong>{term.data.term}.</strong> {term.data.definition}</span>
+  </span>
 </span>
+<script>
+  // The balloon is `position: fixed` and placed from script. Anchoring it to the term with
+  // `absolute` meant any ancestor with `overflow` clipped it — a term inside a scrollable
+  // table lost the end of its definition behind the table border.
+  const MARGIN = 12;   // keep this far from the viewport edges
+  const TAIL = 28;     // tail height, i.e. the gap between term and balloon
+
+  let active: HTMLElement | null = null;
+  let queued = false;
+
+  function place(term: HTMLElement) {
+    const tip = term.querySelector<HTMLElement>('.term-tip');
+    if (!tip) return;
+    // Force it visible for the measurement: relying on :hover having been applied before
+    // the event fires is timing-dependent, and a hidden element measures as 0×0.
+    tip.style.display = 'flex';
+
+    const t = term.getBoundingClientRect();
+    const b = tip.getBoundingClientRect();
+    // clientWidth/Height, not innerWidth/Height — the latter include the scrollbars.
+    const vw = document.documentElement.clientWidth;
+    const vh = document.documentElement.clientHeight;
+
+    const left = Math.max(MARGIN, Math.min(t.left, vw - MARGIN - b.width));
+    // Flip above the term only when there is no room below but there is room above.
+    const flip = t.bottom + TAIL + b.height > vh - MARGIN && t.top - TAIL - b.height > MARGIN;
+    const top = flip ? t.top - TAIL - b.height : t.bottom + TAIL;
+
+    // The tail sits over the start of the term, clamped so it stays on the balloon body.
+    const tail = Math.min(Math.max(t.left + 16 - left, 20), b.width - 48);
+
+    tip.dataset.flip = String(flip);
+    tip.style.setProperty('--tail-x', `${Math.round(tail)}px`);
+    tip.style.setProperty('--tip-left', `${Math.round(left)}px`);
+    tip.style.setProperty('--tip-top', `${Math.round(top)}px`);
+
+    // An ancestor with a transform or filter becomes the containing block for a fixed
+    // element (the press-in effect on cards does exactly that), so the coordinates above
+    // are not viewport coordinates any more. Measure where it actually landed and correct.
+    const got = tip.getBoundingClientRect();
+    const dx = left - got.left;
+    const dy = top - got.top;
+    if (dx || dy) {
+      tip.style.setProperty('--tip-left', `${Math.round(left + dx)}px`);
+      tip.style.setProperty('--tip-top', `${Math.round(top + dy)}px`);
+    }
+
+    tip.style.removeProperty('display');
+  }
+
+  function show(term: HTMLElement) {
+    active = term;
+    place(term);
+  }
+
+  function reposition() {
+    if (!active || queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      if (active) place(active);
+    });
+  }
+
+  for (const term of document.querySelectorAll<HTMLElement>('.term')) {
+    term.addEventListener('mouseenter', () => show(term));
+    term.addEventListener('focus', () => show(term));
+    term.addEventListener('mouseleave', () => { if (active === term) active = null; });
+    term.addEventListener('blur', () => { if (active === term) active = null; });
+  }
+  // Fixed balloons do not travel with the page, so follow the term while it is open.
+  addEventListener('scroll', reposition, { passive: true, capture: true });
+  addEventListener('resize', reposition, { passive: true });
+</script>
 <style>
-  .term { border-bottom: 1.5px dotted var(--primary); cursor: help; position: relative; }
-  .term-tip { display: none; position: absolute; left: 0; top: 100%; z-index: 20; width: min(20rem, 80vw); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem 0.75rem; font-size: 0.9rem; line-height: 1.5; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
-  .term:hover .term-tip, .term:focus .term-tip { display: block; }
+  .term { border-bottom: var(--bw-sm) dotted var(--accent); cursor: help; position: relative; }
+
+  .term-tip {
+    /* --r is the corner radius, stepped in 4px increments so the balloon reads as a comic
+       bubble while staying on the pixel grid. --tail-x is the tail's centre. */
+    --r: 16px;
+    --tail-x: 2.25rem;
+
+    display: none;
+    position: fixed;
+    left: var(--tip-left, 0);
+    top: var(--tip-top, 0);
+    z-index: 60;
+    width: min(28rem, 84vw);
+    gap: 1rem;
+    padding: 1.125rem 1.25rem;
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: var(--text-soft);
+    text-align: left;
+    /* The term is inline inside styled prose — reset what it would inherit. A term in a
+       table header would otherwise pull in the Press Start 2P display face and the
+       uppercasing from `.prose th`, and the balloon would render huge and shouty. */
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-style: normal;
+    text-transform: none;
+    letter-spacing: normal;
+    white-space: normal;
+    /* drop-shadow follows the clipped outline; box-shadow would draw a rectangle.
+       Applied to the whole balloon so body and tail cast one continuous shadow. */
+    filter: drop-shadow(5px 5px 0 var(--ink));
+  }
+  .term:hover .term-tip, .term:focus .term-tip, .term:focus-visible .term-tip { display: flex; }
+
+  /* Balloon body: two stacked layers — ink outline, then the fill inset by the 4px border.
+     The staircase corners are shared through --balloon; each layer resolves --r itself. */
+  .tip-ink, .tip-fill {
+    position: absolute;
+    z-index: 0;
+    --balloon: polygon(
+      var(--r) 0,
+      calc(100% - var(--r)) 0,
+      calc(100% - var(--r)) 4px,
+      calc(100% - 4px) 4px,
+      calc(100% - 4px) 8px,
+      100% 8px,
+      100% calc(100% - 8px),
+      calc(100% - 4px) calc(100% - 8px),
+      calc(100% - 4px) calc(100% - 4px),
+      calc(100% - var(--r)) calc(100% - 4px),
+      calc(100% - var(--r)) 100%,
+      var(--r) 100%,
+      var(--r) calc(100% - 4px),
+      4px calc(100% - 4px),
+      4px calc(100% - 8px),
+      0 calc(100% - 8px),
+      0 8px,
+      4px 8px,
+      4px 4px,
+      var(--r) 4px
+    );
+    clip-path: var(--balloon);
+  }
+  .tip-ink { inset: 0; background: var(--ink); }
+  .tip-fill { inset: 4px; --r: 12px; background: var(--surface); }
+
+  /* Tail: a stepped pixel spike rising from the body's top edge to the term. It is one
+     element — the ink outline comes from chained 4px drop-shadows, which trace the
+     staircase exactly and spare us aligning a second clipped layer to it. The bottom 4px
+     overlap the body, so the tail merges into the balloon instead of sitting on it. */
+  .term-tip::after {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    top: -24px;
+    left: var(--tail-x);
+    width: 28px;
+    height: 28px;
+    background: var(--surface);
+    clip-path: polygon(12px 0, 16px 0, 16px 8px, 20px 8px, 20px 16px, 24px 16px, 24px 24px, 28px 24px, 28px 28px, 0 28px, 0 24px, 4px 24px, 4px 16px, 8px 16px, 8px 8px, 12px 8px);
+    filter:
+      drop-shadow(4px 0 0 var(--ink))
+      drop-shadow(-4px 0 0 var(--ink))
+      drop-shadow(0 -4px 0 var(--ink));
+  }
+  /* Balloon placed above the term: mirror the spike so it points down at it. The flip
+     takes the drop-shadow outline with it, so the outline stays on the outer edges. */
+  .term-tip[data-flip='true']::after {
+    top: auto;
+    bottom: -24px;
+    transform: scaleY(-1);
+  }
+
+  /* Content sits above the balloon layers. */
+  .tip-avatar, .tip-text { position: relative; z-index: 2; }
+  .tip-avatar { flex-shrink: 0; align-self: flex-start; width: 70px; height: auto; }
+  .tip-text { min-width: 0; }
+  .tip-text strong { color: var(--accent); font-weight: 600; }
+
+  @media (max-width: 34rem) {
+    .term-tip { width: min(20rem, 88vw); }
+    .tip-avatar { width: 52px; }
+  }
 </style>

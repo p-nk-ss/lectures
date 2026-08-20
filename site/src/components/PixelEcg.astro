@@ -1,0 +1,58 @@
+---
+// Pixel ECG trace for lecture title slides: a PQRST complex stepped onto a 4px grid,
+// the same unit as the site's borders. The sweep runs left to right like a monitor.
+const CELL = 4;
+// Height of each column in cells, relative to the baseline (positive = up).
+// Amplitude is tuned so the rendered trace stands ~52px tall — the same visual weight as
+// the 56px sprites it sits between.
+const WAVE = [0, 0, 0, 1, 1, 0, 0, -1, 4, 8, 4, -3, 0, 0, 1, 2, 1, 0, 0, 0];
+
+const top = Math.max(...WAVE);
+const bottom = Math.min(...WAVE);
+const baseline = (top + 1) * CELL;
+const width = WAVE.length * CELL;
+const height = (top - bottom + 2) * CELL;
+
+// One rect per column, plus a filler rect wherever consecutive columns jump more than a
+// cell — without it a steep edge like the R spike reads as detached blocks, not a line.
+const cells: { x: number; y: number; h: number; i: number }[] = [];
+WAVE.forEach((lvl, i) => {
+  const y = baseline - lvl * CELL;
+  const prev = i > 0 ? WAVE[i - 1] : lvl;
+  const lo = Math.min(lvl, prev);
+  const hi = Math.max(lvl, prev);
+  cells.push({ x: i * CELL, y: baseline - hi * CELL, h: (hi - lo + 1) * CELL, i });
+  if (lo === hi) cells[cells.length - 1] = { x: i * CELL, y, h: CELL, i };
+});
+---
+<svg
+  class="pixel-ecg"
+  width={width}
+  height={height}
+  viewBox={`0 0 ${width} ${height}`}
+  shape-rendering="crispEdges"
+  role="img"
+  aria-label="Лінія ЕКГ"
+>
+  {cells.map((c) => (
+    <rect x={c.x} y={c.y} width={CELL} height={c.h} style={`--i:${c.i}`} />
+  ))}
+</svg>
+<style>
+  .pixel-ecg { display: block; }
+  .pixel-ecg rect {
+    fill: var(--ok);
+    /* Base state is the visible one: the global reduced-motion rule drops the animation,
+       and the trace must stay fully drawn without it. */
+    animation: ecg-sweep 2.2s steps(1, end) infinite backwards;
+    animation-delay: calc(var(--i) * 0.055s);
+  }
+  @keyframes ecg-sweep {
+    0%, 100% { fill: var(--ok); }
+    4% { fill: #fff; }
+    12% { fill: var(--ok); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pixel-ecg rect { fill: var(--ok); animation: none; }
+  }
+</style>

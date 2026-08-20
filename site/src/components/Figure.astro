@@ -4,30 +4,43 @@ interface Props {
   src: string;
   alt: string;
   caption: string;
-  license: string;
+  /* Attribution line. Required for openly-licensed media; omitted only when the author
+     supplies an image whose provenance is tracked in the lecture's review doc instead. */
+  license?: string;
   width?: number;
   height?: number;
+  /* Cap for a standalone figure — a tall portrait would otherwise fill the whole slide. */
+  maxWidth?: string;
+  /* Light frame for transparent line art drawn for a white page: its labels are dark and
+     would be unreadable on the default dark surface. */
+  light?: boolean;
 }
-const { src, alt, caption, license, width, height } = Astro.props;
+const { src, alt, caption, license, width, height, maxWidth, light } = Astro.props;
 ---
-<figure class="media-figure">
-  <div class="frame"><img src={src} alt={alt} loading="lazy" width={width} height={height} /></div>
-  <figcaption>{caption} <span class="lic">· {license}</span></figcaption>
+<figure class="media-figure" style={maxWidth ? `--fig-max: ${maxWidth}` : undefined}>
+  <div class:list={['frame', { light }]}><img src={src} alt={alt} loading="lazy" width={width} height={height} /></div>
+  <figcaption>{caption}{license && <span class="lic"> · {license}</span>}</figcaption>
 </figure>
 <style>
-  .media-figure { margin: 1.25rem 0; }
+  .media-figure { margin: 1.5rem 0; max-width: var(--fig-max, none); }
   .frame {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
+    background: var(--surface-3);
+    border: var(--bw) solid var(--ink);
+    box-shadow: var(--shadow-hard);
   }
+  .frame.light { background: var(--text); }
   img { display: block; width: 100%; height: auto; }
+  /* Frame hugs the shrunk image instead of leaving dead bars beside it, and keeps the
+     same left edge as its caption. */
+  :global(.media-row) .frame { width: fit-content; max-width: 100%; }
+  /* Two-up row: cap by height as well as width, otherwise a portrait shot renders
+     twice as tall as its landscape neighbour and dominates the slide. */
+  :global(.media-row) .frame img { width: auto; max-width: 100%; max-height: 22rem; }
   figcaption {
-    font-size: 0.82rem;
-    color: var(--text-muted);
-    margin-top: 0.45rem;
-    padding-inline: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--muted);
+    margin-top: 0.75rem;
   }
-  .lic { opacity: 0.75; }
+  .lic { opacity: 0.8; }
 </style>

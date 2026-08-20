@@ -1,12 +1,27 @@
 ---
-import Icon from '../Icon.astro';
+// Danger card: red border on the alert background, pixel "!! ВАЖЛИВО" label.
 ---
 <aside class="callout important" role="note">
-  <strong class="label"><Icon name="alert-triangle" size={17} /> Важливо</strong>
-  <div><slot /></div>
+  <p class="label">!! ВАЖЛИВО</p>
+  <div class="body"><slot /></div>
 </aside>
 <style>
-  .callout { border-radius: var(--radius); padding: 1rem 1.15rem; margin-block: 1.1rem; border: 1px solid; }
-  .important { background: color-mix(in srgb, var(--danger) 9%, var(--surface)); border-color: color-mix(in srgb, var(--danger) 35%, transparent); }
-  .label { display: flex; align-items: center; gap: 0.45rem; margin-bottom: 0.35rem; color: var(--danger); font-family: var(--font-heading); }
+  .important {
+    background: var(--danger-bg);
+    border: var(--bw) solid var(--danger);
+    box-shadow: var(--shadow-hard-lg);
+    padding: 1.625rem;
+    margin-block: 1.5rem;
+  }
+  .label {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-display);
+    font-size: 10px;
+    line-height: 1.6;
+    color: var(--danger);
+  }
+  .body :global(> :first-child) { margin-top: 0; }
+  .body :global(> :last-child) { margin-bottom: 0; }
+  .body :global(p), .body :global(li) { color: var(--danger-text); }
+  .body :global(strong) { color: #fff; }
 </style>

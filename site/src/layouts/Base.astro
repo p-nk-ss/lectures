@@ -1,202 +1,129 @@
 ---
 import '../styles/global.css';
 import SearchModal from '../components/SearchModal.astro';
-import Icon from '../components/Icon.astro';
 
-interface Props { title: string; description?: string }
-const { title, description = 'Лекції з анестезіології та інтенсивної терапії' } = Astro.props;
+interface Props {
+  title: string;
+  description?: string;
+  /* 'presentation' drops the chrome so the page can own the full viewport (lecture slides). */
+  variant?: 'default' | 'presentation';
+}
+const {
+  title,
+  description = 'Лекції з анестезіології та інтенсивної терапії',
+  variant = 'default',
+} = Astro.props;
 const path = Astro.url.pathname;
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+const nav = [
+  { href: '/', label: 'Лекції' },
+  { href: '/tests/', label: 'Тести' },
+  { href: '/glossary/', label: 'Глосарій' },
+  { href: '/video/', label: 'Відео' },
+];
 ---
 <!doctype html>
-<html lang="uk">
+<html lang="uk" data-variant={variant}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
-    <script is:inline>
-      // Dark is the default; light is an explicit stored choice.
-      if (localStorage.getItem('aiti:theme') === 'light')
-        document.documentElement.dataset.theme = 'light';
-    </script>
   </head>
   <body>
-    <header class="site-header">
-      <div class="container header-row">
-        <a href="/" class="brand">АІТ<span class="brand-dot">·</span>лекції</a>
-        <nav class="dock" aria-label="Головна навігація">
-          <a class="dock-item" href="/" aria-current={isActive('/') ? 'page' : undefined} aria-label="Головна">
-            <Icon name="home" size={20} />
-            <span class="dock-label">Головна</span>
-          </a>
-          <a class="dock-item" href="/tests/" aria-current={isActive('/tests/') ? 'page' : undefined} aria-label="Тести">
-            <Icon name="list-check" size={20} />
-            <span class="dock-label">Тести</span>
-          </a>
-          <a class="dock-item" href="/glossary/" aria-current={isActive('/glossary/') ? 'page' : undefined} aria-label="Глосарій">
-            <Icon name="book-2" size={20} />
-            <span class="dock-label">Глосарій</span>
-          </a>
-          <span class="dock-sep" aria-hidden="true"></span>
-          <button class="dock-item" id="search-open" aria-label="Пошук (Ctrl+K)">
-            <Icon name="search" size={20} />
-            <span class="dock-label">Пошук</span>
-          </button>
-          <button class="dock-item" id="theme-toggle" aria-label="Перемкнути тему">
-            <span class="only-dark"><Icon name="sun" size={20} /></span>
-            <span class="only-light"><Icon name="moon" size={20} /></span>
-            <span class="dock-label">Тема</span>
-          </button>
-        </nav>
-        <span class="header-spacer" aria-hidden="true"></span>
-      </div>
-    </header>
-    <main class="container"><slot /></main>
-    <footer class="site-footer">
-      <div class="container">
-        <p>Навчальні матеріали. Не замінюють клінічні протоколи та призначення лікаря.</p>
-      </div>
-    </footer>
+    {variant === 'default' && (
+      <header class="site-header">
+        <div class="header-row">
+          <a href="/" class="brand">АІТ<span class="brand-dot">·</span>ЛЕКЦІЇ</a>
+          <nav class="nav" aria-label="Головна навігація">
+            {nav.map((item) => (
+              <a
+                class:list={['nav-item', { on: isActive(item.href) }]}
+                href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+              >{item.label}</a>
+            ))}
+            <button class="nav-item search" id="search-open" aria-label="Пошук (Ctrl+K)">⌕</button>
+          </nav>
+        </div>
+      </header>
+    )}
+    {variant === 'default'
+      ? <main class="container"><slot /></main>
+      : <slot />}
+    {variant === 'default' && (
+      <footer class="site-footer">
+        <div class="container">
+          <p>Навчальні матеріали. Не замінюють клінічні протоколи та призначення лікаря.</p>
+        </div>
+      </footer>
+    )}
     <SearchModal />
-    <script>
-      document.getElementById('theme-toggle')?.addEventListener('click', () => {
-        const root = document.documentElement;
-        const next = root.dataset.theme === 'light' ? 'dark' : 'light';
-        if (next === 'light') root.dataset.theme = 'light';
-        else delete root.dataset.theme;
-        localStorage.setItem('aiti:theme', next);
-      });
-
-      // Dock magnification: scale items by cursor proximity (fine pointers only).
-      const dock = document.querySelector<HTMLElement>('.dock');
-      const finePointer = matchMedia('(pointer: fine)').matches;
-      const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (dock && finePointer && !reduceMotion) {
-        const items = [...dock.querySelectorAll<HTMLElement>('.dock-item')];
-        dock.addEventListener('mousemove', (e) => {
-          for (const item of items) {
-            const r = item.getBoundingClientRect();
-            const d = Math.abs(e.clientX - (r.left + r.width / 2));
-            const f = Math.max(0, 1 - d / 100);
-            item.style.transform = `translateY(${4 * f}px) scale(${1 + 0.22 * f})`;
-          }
-        });
-        dock.addEventListener('mouseleave', () => {
-          for (const item of items) item.style.transform = '';
-        });
-      }
-    </script>
     <style>
       .site-header {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        padding-block: 0.6rem;
-        pointer-events: none;
+        background: var(--surface);
+        border-bottom: var(--bw) solid var(--ink);
       }
       .header-row {
+        max-width: 66rem;
+        margin-inline: auto;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 0.75rem;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
       }
-      .header-row > * { pointer-events: auto; }
       .brand {
-        font-family: var(--font-heading);
-        font-weight: 800;
-        font-size: 1.05rem;
-        letter-spacing: -0.02em;
+        font-family: var(--font-display);
+        font-size: 12px;
+        line-height: 1.6;
+        color: var(--accent);
+        text-shadow: 2px 2px 0 var(--ink);
         text-decoration: none;
-        color: var(--text);
-        padding: 0.35rem 0.7rem;
-        border-radius: 999px;
-        background: color-mix(in srgb, var(--surface) 78%, transparent);
-        border: 1px solid var(--border);
-        backdrop-filter: blur(14px) saturate(160%);
-        -webkit-backdrop-filter: blur(14px) saturate(160%);
-      }
-      .brand-dot { color: var(--primary); margin-inline: 0.2rem; }
-      .header-spacer { width: 8.5rem; }
-
-      .dock {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.4rem 0.5rem;
-        border-radius: 999px;
-        background: color-mix(in srgb, var(--surface) 78%, transparent);
-        border: 1px solid var(--border-strong);
-        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 12px 32px rgba(0, 0, 0, 0.35);
-        backdrop-filter: blur(16px) saturate(160%);
-        -webkit-backdrop-filter: blur(16px) saturate(160%);
-      }
-      .dock-item {
-        position: relative;
-        display: grid;
-        place-items: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 999px;
-        border: 0;
-        background: transparent;
-        color: var(--text-muted);
-        cursor: pointer;
-        text-decoration: none;
-        transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease, background 0.15s ease;
-        will-change: transform;
-      }
-      .dock-item:hover { color: var(--text); background: var(--glass); }
-      .dock-item[aria-current='page'] { color: var(--primary); }
-      .dock-item[aria-current='page']::after {
-        content: '';
-        position: absolute;
-        bottom: 2px;
-        width: 4px;
-        height: 4px;
-        border-radius: 999px;
-        background: var(--primary);
-      }
-      .dock-sep { width: 1px; height: 20px; background: var(--border-strong); margin-inline: 0.15rem; }
-      .dock-label {
-        position: absolute;
-        top: calc(100% + 10px);
-        left: 50%;
-        translate: -50% 0;
         white-space: nowrap;
-        font-size: 0.75rem;
-        font-weight: 600;
-        font-family: var(--font-heading);
-        color: var(--text);
-        background: var(--surface-2);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 0.2rem 0.55rem;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.15s ease;
       }
-      .dock-item:hover .dock-label, .dock-item:focus-visible .dock-label { opacity: 1; }
-      .only-light { display: none; }
-      :global(html[data-theme='light']) .only-light { display: grid; }
-      :global(html[data-theme='light']) .only-dark { display: none; }
+      .brand:hover { color: var(--accent); }
+      .brand-dot { color: var(--ok); }
 
-      @media (max-width: 640px) {
-        .header-spacer { display: none; }
-        .brand { font-size: 0.95rem; padding: 0.3rem 0.55rem; }
-        .dock-item { width: 38px; height: 38px; }
-        .dock-label { display: none; }
+      .nav { display: flex; align-items: center; gap: 0.625rem; flex-wrap: wrap; }
+      .nav-item {
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: 0.875rem;
+        line-height: 1.4;
+        text-decoration: none;
+        color: var(--text);
+        background: transparent;
+        padding: 0.5rem 1rem;
+        border: var(--bw-sm) solid transparent;
+        cursor: pointer;
       }
+      .nav-item:hover, .nav-item:focus-visible { color: var(--text); border-color: var(--accent); outline: none; }
+      .nav-item.on {
+        color: var(--ink);
+        background: var(--accent);
+        border-color: var(--ink);
+        box-shadow: 3px 3px 0 var(--ink);
+      }
+      .nav-item.search { color: var(--muted); font-size: 1.25rem; padding: 0.25rem 0.75rem; }
+      .nav-item.search:hover { color: var(--accent); }
 
       .site-footer {
-        border-top: 1px solid var(--border);
-        color: var(--text-muted);
-        font-size: 0.85rem;
-        padding-block: 1.5rem;
-        margin-top: 4rem;
+        border-top: var(--bw) solid var(--ink);
+        background: var(--surface-2);
+        color: var(--muted);
+        font-size: 0.875rem;
+        padding-block: 1.75rem;
+        margin-top: 5rem;
       }
       .site-footer p { margin: 0; }
+
+      @media (max-width: 40rem) {
+        .header-row { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+        .nav { gap: 0.375rem; }
+        .nav-item { padding: 0.4rem 0.7rem; font-size: 0.8125rem; }
+      }
     </style>
   </body>
 </html>

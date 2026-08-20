@@ -8,113 +8,200 @@ const all = await getCollection('lectures');
 const visible = filterVisible(all, { prod: import.meta.env.PROD, showDrafts: showDrafts() })
   .filter((l) => l.data.order <= 8);
 const bySlugPrefix = new Map(visible.map((l) => [l.id.slice(0, 2), l]));
+const quizzes = await getCollection('quizzes');
+const quizCount = (topic: string) => quizzes.filter((q) => q.data.topic === topic).length;
+// Slide count = title slide + one per h2 + final slide, matching the lecture page.
+const slideCount = (body: string | undefined) => (body?.match(/^## /gm)?.length ?? 0) + 2;
+const first = [...visible].sort((a, b) => a.data.order - b.data.order)[0];
 const modules = [
-  { n: 1, title: 'Модуль I. Поняття про анестезіологію та реаніматологію' },
-  { n: 2, title: 'Модуль II. Шокові, коматозні стани та гострі отруєння' },
+  { n: 1, title: 'МОДУЛЬ I · ПОНЯТТЯ ПРО АНЕСТЕЗІОЛОГІЮ ТА РЕАНІМАТОЛОГІЮ' },
+  { n: 2, title: 'МОДУЛЬ II · ШОКОВІ, КОМАТОЗНІ СТАНИ ТА ГОСТРІ ОТРУЄННЯ' },
 ];
 ---
 <Base title="Анестезіологія та інтенсивна терапія — лекції">
   <section class="hero">
-    <h1>Анестезіологія та<br /><span class="text-gradient">інтенсивна терапія</span></h1>
-    <p>Лекції за актуальними протоколами ERC, AHA та МОЗ України, з тестами для самоконтролю.</p>
+    <p class="hero-kicker"><span class="g">★</span> МЕДСЕСТРИНСТВО · ДОСТУПНО РІВНІВ {visible.length}/{TOPICS.length} <span class="g">★</span></p>
+    <h1>АНЕСТЕЗІОЛОГІЯ ТА ІНТЕНСИВНА ТЕРАПІЯ</h1>
+    <p class="hero-lead">
+      Лекції за протоколами ERC, AHA та МОЗ України. Пройди слайди в режимі презентації,
+      склади тест для самоконтролю.
+    </p>
+    <div class="hero-actions">
+      {first && <a class="btn" href={`/lektsiyi/${first.id}/`}><span class="g">▶</span> PRESS START</a>}
+      <span class="hero-progress">
+        <span class="hero-progress-label">ПРОГРЕС</span>
+        <span class="bar hero-bar"><span id="total-fill" style="width:0%"></span></span>
+        <span class="hero-progress-num" id="total-num">0/{TOPICS.length}</span>
+      </span>
+    </div>
   </section>
+
   {modules.map((m) => (
     <section class="module">
       <h2>{m.title}</h2>
       <div class="cards">
         {TOPICS.filter((t) => t.module === m.n).map((t) => {
           const lecture = bySlugPrefix.get(t.id);
+          const tests = quizCount(t.id);
           return lecture ? (
-            <a class="card" href={`/lektsiyi/${lecture.id}/`} style={`--accent: ${t.color}`} data-slug={lecture.id} data-topic={t.id}>
-              <span class="num">Тема {t.order}</span>
+            <a
+              class="card press"
+              href={`/lektsiyi/${lecture.id}/`}
+              data-slug={lecture.id}
+              data-topic={t.id}
+              data-slides={slideCount(lecture.body)}
+            >
+              <span class="lvl" data-lvl>LVL {t.id} · START</span>
               <span class="title">{t.short}</span>
-              <span class="status" data-status></span>
+              <span class="bar card-bar"><span data-fill style="width:0%"></span></span>
+              <span class="meta">
+                {slideCount(lecture.body)} слайдів{tests > 0 ? ` · ${tests} ` : ''}
+                {tests > 0 ? (tests === 1 ? 'тест' : 'тести') : ''}
+                <span data-best></span>
+              </span>
             </a>
           ) : (
-            <div class="card soon" style={`--accent: ${t.color}`}>
-              <span class="num">Тема {t.order}</span>
+            <div class="card locked">
+              <span class="lvl">LVL {t.id} · LOCKED</span>
               <span class="title">{t.short}</span>
-              <span class="status">незабаром</span>
+              <span class="bar card-bar"></span>
+              <span class="meta">незабаром</span>
             </div>
           );
         })}
       </div>
     </section>
   ))}
+
   <script>
+    let cleared = 0;
     document.querySelectorAll<HTMLAnchorElement>('a.card').forEach((card) => {
-      const read = localStorage.getItem(`aiti:read:${card.dataset.slug}`);
-      const el = card.querySelector('[data-status]')!;
-      const bests = ['nurse', 'doctor']
-        .map((lvl) => localStorage.getItem(`aiti:quiz:${card.dataset.topic}:${lvl}`))
-        .filter(Boolean).length;
-      el.textContent = [read ? 'прочитано' : '', bests ? `тестів пройдено: ${bests}` : '']
-        .filter(Boolean).join(' · ');
+      const { slug, topic, slides } = card.dataset;
+      const total = Number(slides) || 1;
+      let progress = 0;
+      let read = false;
+      let bests = 0;
+      try {
+        progress = Number(localStorage.getItem(`aiti:progress:${slug}`) ?? 0);
+        read = localStorage.getItem(`aiti:read:${slug}`) === '1';
+        bests = ['nurse', 'doctor']
+          .filter((lvl) => localStorage.getItem(`aiti:quiz:${topic}:${lvl}`))
+          .length;
+      } catch {
+        // storage unavailable — cards fall back to their initial "START" state
+      }
+
+      const pct = read ? 100 : Math.min(100, Math.round((progress / total) * 100));
+      const fill = card.querySelector<HTMLElement>('[data-fill]');
+      const lvl = card.querySelector<HTMLElement>('[data-lvl]');
+      const best = card.querySelector<HTMLElement>('[data-best]');
+
+      if (fill) fill.style.width = `${pct}%`;
+      if (read) {
+        cleared++;
+        card.dataset.state = 'cleared';
+        if (lvl) lvl.textContent = `LVL ${topic} · CLEARED`;
+      } else if (pct > 0) {
+        card.dataset.state = 'progress';
+        if (lvl) lvl.textContent = `LVL ${topic} · IN PROGRESS ${pct}%`;
+      }
+      if (best && bests > 0) best.textContent = ` · тестів пройдено: ${bests}`;
     });
+
+    const cards = document.querySelectorAll('.card').length;
+    const totalFill = document.getElementById('total-fill');
+    const totalNum = document.getElementById('total-num');
+    if (totalFill && cards > 0) totalFill.style.width = `${Math.round((cleared / cards) * 100)}%`;
+    if (totalNum) totalNum.textContent = `${cleared}/${cards}`;
   </script>
+
   <style>
-    .hero { padding-block: 3.5rem 2.5rem; max-width: 46rem; }
-    .hero h1 {
-      font-size: clamp(2.2rem, 6vw, 3.6rem);
-      font-weight: 800;
-      margin: 0 0 0.75rem;
+    /* ---------- Hero ---------- */
+    .hero { padding-block: 4.75rem 3.25rem; text-align: center; }
+    .hero-kicker {
+      margin: 0 0 1.375rem;
+      font-family: var(--font-display);
+      font-size: 11px;
+      line-height: 1.8;
+      color: var(--ok);
     }
-    .hero p { color: var(--text-muted); font-size: 1.1rem; margin: 0; max-width: 34rem; }
+    .hero h1 {
+      margin: 0 auto 1.375rem;
+      font-size: clamp(20px, 3.4vw, 36px);
+      line-height: 1.5;
+      color: var(--text);
+      text-shadow: 4px 4px 0 var(--title-shadow);
+      max-width: 24ch;
+    }
+    .hero-lead {
+      margin: 0 auto 1.875rem;
+      font-size: 1.125rem;
+      line-height: 1.65;
+      max-width: 52ch;
+      color: var(--text-soft);
+    }
+    .hero-actions {
+      display: flex;
+      gap: 1.125rem;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .hero-progress {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-display);
+      font-size: 10px;
+    }
+    .hero-progress-label { color: var(--muted); }
+    .hero-progress-num { color: var(--accent); font-variant-numeric: tabular-nums; }
+    .hero-bar { width: 110px; }
 
-    .module { margin-block: 2.5rem; }
-    .module h2 { font-size: 1.15rem; color: var(--text-muted); font-weight: 700; margin-bottom: 1rem; }
+    /* ---------- Module sections ---------- */
+    .module { margin-block: 3rem; }
+    .module h2 {
+      margin: 0 0 1.25rem;
+      font-family: var(--font-display);
+      font-size: 10px;
+      line-height: 1.8;
+      color: var(--accent);
+    }
 
-    .cards { display: grid; gap: 0.9rem; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); }
+    .cards { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(15.625rem, 1fr)); }
     .card {
-      position: relative;
       display: grid;
-      gap: 0.3rem;
+      gap: 0.625rem;
       align-content: start;
+      padding: 1.25rem;
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-card);
-      padding: 1.15rem 1.25rem;
+      border: var(--bw) solid var(--ink);
+      box-shadow: var(--shadow-hard-lg);
       text-decoration: none;
       color: var(--text);
-      overflow: hidden;
-      transition: transform 0.18s ease, border-color 0.18s ease;
     }
-    .card::before {
-      content: '';
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 3px;
-      background: linear-gradient(180deg, var(--accent), transparent 90%);
+    .card.locked {
+      background: var(--surface-3);
+      border: var(--bw) dashed var(--muted-border);
+      box-shadow: none;
+      color: var(--muted);
     }
-    .card::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0;
-      background: radial-gradient(14rem 8rem at 20% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%);
-      transition: opacity 0.18s ease;
-    }
-    a.card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
-    a.card:hover::after { opacity: 1; }
-
-    /* Hover reveal: focused card stays sharp, siblings dim and blur. */
-    @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-      .card { transition: transform 0.18s ease, border-color 0.18s ease, opacity 0.25s ease, filter 0.25s ease; }
-      .cards:has(a.card:hover) .card:not(:hover) { opacity: 0.45; filter: blur(2px) saturate(0.7); }
-    }
-    .cards:has(a.card:focus-visible) .card:not(:focus-visible) { opacity: 0.45; }
-    .card .num {
+    .card .lvl {
+      font-family: var(--font-display);
+      font-size: 9px;
+      line-height: 1.6;
       color: var(--accent);
-      font-family: var(--font-heading);
-      font-weight: 800;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
     }
-    .card .title { font-family: var(--font-heading); font-weight: 700; font-size: 1.05rem; line-height: 1.3; }
-    .card .status { color: var(--text-muted); font-size: 0.85rem; min-height: 1.2em; }
-    .card.soon { opacity: 0.55; }
+    .card.locked .lvl { color: var(--muted); }
+    .card[data-state='cleared'] .lvl { color: var(--ok); }
+    .card .title { font-weight: 600; font-size: 1.0625rem; line-height: 1.35; }
+    .card-bar { height: 12px; }
+    .card.locked .card-bar { border-color: var(--muted-border); }
+    .card[data-state='cleared'] .card-bar > span { background: var(--ok); }
+    .card .meta { font-size: 0.8125rem; line-height: 1.5; color: var(--muted); }
+
+    @media (max-width: 40rem) {
+      .hero { padding-block: 3rem 2.25rem; }
+    }
   </style>
 </Base>

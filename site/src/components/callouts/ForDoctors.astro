@@ -1,30 +1,34 @@
 ---
-import Icon from '../Icon.astro';
+// Optional deep-dive block: green-bordered panel with a pixel "+ / −" affordance.
 ---
 <details class="for-doctors">
-  <summary><Icon name="school" size={17} /> Поглиблено, для лікарів</summary>
+  <summary><span class="g">▸</span> ПОГЛИБЛЕНО · ДЛЯ ЛІКАРІВ</summary>
   <div class="body"><slot /></div>
 </details>
 <style>
   .for-doctors {
-    border: 1px solid color-mix(in srgb, var(--topic-07) 35%, transparent);
-    background: color-mix(in srgb, var(--topic-07) 8%, var(--surface));
-    border-radius: var(--radius);
-    margin-block: 1.1rem;
+    background: var(--surface);
+    border: var(--bw) solid var(--ok);
+    box-shadow: var(--shadow-hard-lg);
+    margin-block: 1.5rem;
   }
   summary {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.5rem;
     cursor: pointer;
-    font-weight: 700;
-    font-family: var(--font-heading);
-    padding: 1rem 1.15rem;
-    color: var(--topic-07);
+    font-family: var(--font-display);
+    font-size: 10px;
+    line-height: 1.6;
+    padding: 1.125rem 1.375rem;
+    color: var(--ok);
     list-style: none;
   }
   summary::-webkit-details-marker { display: none; }
-  summary::after { content: '+'; margin-left: auto; font-size: 1.2rem; line-height: 1; }
+  summary::after { content: '+'; margin-left: auto; font-size: 14px; line-height: 1; }
   details[open] summary::after { content: '−'; }
-  .body { padding: 0 1.15rem 1rem; }
+  .body { padding: 0 1.375rem 1.375rem; }
+  .body :global(> :first-child) { margin-top: 0; }
+  .body :global(> :last-child) { margin-bottom: 0; }
+  .body :global(p), .body :global(li) { color: var(--text-body); }
 </style>

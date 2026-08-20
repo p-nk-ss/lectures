@@ -1,12 +1,42 @@
 ---
-import Icon from '../Icon.astro';
+// Dosing card styled as a game "inventory" slot: pixel item sprite in a fixed left
+// column, dose text on the right. The drug name in the text carries the meaning, so the
+// card shows no label — `aria-label` keeps the role legible to screen readers.
+interface Props { icon?: 'ampoule' | 'capsule' | 'pill' | 'syringe' | 'thermo' | 'kit' | 'hp' }
+const { icon } = Astro.props;
 ---
-<aside class="callout dose" role="note">
-  <strong class="label"><Icon name="vaccine" size={17} /> Дозування</strong>
-  <div><slot /></div>
+<aside class:list={['callout dose', { 'has-icon': !!icon }]} role="note" aria-label="Дозування">
+  {icon && <img class="px slot" src={`/icons/icon-${icon}.png`} alt="" height="52" />}
+  <div class="body"><slot /></div>
 </aside>
 <style>
-  .callout { border-radius: var(--radius); padding: 1rem 1.15rem; margin-block: 1.1rem; border: 1px solid; }
-  .dose { background: color-mix(in srgb, var(--warn) 9%, var(--surface)); border-color: color-mix(in srgb, var(--warn) 38%, transparent); }
-  .label { display: flex; align-items: center; gap: 0.45rem; margin-bottom: 0.35rem; color: var(--warn); font-family: var(--font-heading); }
+  .dose {
+    background: var(--surface);
+    border: var(--bw) solid var(--ink);
+    box-shadow: var(--shadow-hard-lg);
+    padding: 1.375rem 1.625rem;
+    margin-block: 1.5rem;
+  }
+  .has-icon {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 1.125rem;
+    align-items: center;
+  }
+  .slot { height: 52px; width: auto; justify-self: center; }
+  /* Multi-item cards: each paragraph is one inventory row. */
+  .body :global(p) {
+    margin: 0;
+    padding: 0.875rem 0;
+    border-bottom: var(--bw-sm) solid var(--surface-2);
+    color: var(--text-body);
+    line-height: 1.65;
+  }
+  .body :global(p:first-child) { padding-top: 0; }
+  .body :global(p:last-child) { border-bottom: 0; padding-bottom: 0; }
+  .body :global(strong) { color: var(--ok); }
+  @media (max-width: 34rem) {
+    .has-icon { grid-template-columns: 1fr; }
+    .slot { justify-self: start; }
+  }
 </style>
