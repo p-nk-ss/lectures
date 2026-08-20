@@ -14,7 +14,7 @@ import {
 } from '../../lib/quiz';
 import { saveBest } from '../../lib/storage';
 import Scene, { type Mood } from './Scene';
-import Typewriter, { useTypewriter } from './Typewriter';
+import Typewriter from './Typewriter';
 
 interface Props { topic: string; level: QuizLevel; questions: Question[] }
 
@@ -48,7 +48,11 @@ export default function Quiz({ topic, level, questions }: Props) {
   const react = q ? q.explanation : '';
   const line = checked ? react : ask;
   const other = checked ? ask : react;
-  const tw = useTypewriter(line);
+  /* The typing cursor lives inside Typewriter; the run only needs to know when the line
+     is finished, and a counter to tell it to jump to the end. */
+  const [typed, setTyped] = useState(false);
+  const [skipTick, setSkipTick] = useState(0);
+  useEffect(() => { setTyped(false); setSkipTick(0); }, [line]);
 
   const finish = (o: QuizOutcome, at: Map<string, number[]>) => {
     if (!practice) {
@@ -225,7 +229,7 @@ export default function Quiz({ topic, level, questions }: Props) {
   /* Reaction first, then she talks through the explanation, then she rests on the verdict. */
   const mood: Mood = reacting
     ? (right ? 'ok' : 'bad')
-    : !tw.done ? 'talk' : checked ? (right ? 'ok' : 'bad') : 'idle';
+    : !typed ? 'talk' : checked ? (right ? 'ok' : 'bad') : 'idle';
 
   return (
     <div class="quiz quiz-run">
@@ -244,12 +248,12 @@ export default function Quiz({ topic, level, questions }: Props) {
       <Dialogue
         speaker={DOCTOR}
         badge={checked ? (right ? 'ok' : 'bad') : undefined}
-        onSkip={tw.done ? undefined : tw.skip}
+        onSkip={typed ? undefined : () => setSkipTick((t) => t + 1)}
       >
         {/* Two lines share one grid cell: the hidden one holds the box open at the height
             of the longer text, so the answer never shoves the options down the page. */}
         <div class="line-stack">
-          <p class="line"><Typewriter text={line} n={tw.n} done={tw.done} /></p>
+          <p class="line"><Typewriter text={line} skipTick={skipTick} onDone={() => setTyped(true)} /></p>
           <p class="line sizer" aria-hidden="true">{other}</p>
         </div>
       </Dialogue>
@@ -261,7 +265,7 @@ export default function Quiz({ topic, level, questions }: Props) {
 
         {/* Rendered from the start, hidden until the doctor stops talking: reserving the
             space means the button below them never moves. */}
-        <ul class={`options ${tw.done || checked ? 'revealed' : ''}`}>
+        <ul class={`options ${typed || checked ? 'revealed' : ''}`}>
           {q.options.map((opt, i) => {
             const isSel = selected.includes(i);
             const cls = checked
@@ -269,7 +273,7 @@ export default function Quiz({ topic, level, questions }: Props) {
               : isSel ? 'selected' : '';
             return (
               <li key={i} style={`--i:${i}`}>
-                <button class={cls} onClick={() => toggle(i)} disabled={checked || !tw.done}>
+                <button class={cls} onClick={() => toggle(i)} disabled={checked || !typed}>
                   <span class="key" aria-hidden="true">{String.fromCharCode(65 + i)}</span>
                   <span>{opt}</span>
                 </button>

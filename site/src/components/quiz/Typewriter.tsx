@@ -1,39 +1,81 @@
-import { useEffect, useState } from 'preact/hooks';
-import { charDelay } from '../../lib/typewriter';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { schedule, visibleAt } from '../../lib/typewriter';
 
 const reducedMotion = () =>
   typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/** Reveals `text` one character at a time. `skip()` jumps to the end. */
-export function useTypewriter(text: string) {
-  const [n, setN] = useState(0);
-
-  /* A new line starts from scratch — unless the reader asked for less motion, in which
-     case there is no typing at all and the line is simply there. */
-  useEffect(() => setN(reducedMotion() ? text.length : 0), [text]);
-
-  useEffect(() => {
-    if (n >= text.length) return;
-    const id = setTimeout(() => setN((v) => v + 1), charDelay(text[n]));
-    return () => clearTimeout(id);
-  }, [n, text]);
-
-  return { n, done: n >= text.length, skip: () => setN(text.length) };
+interface Props {
+  text: string;
+  /** Incremented by the parent to jump to the end of the line. */
+  skipTick: number;
+  onDone: () => void;
 }
 
-interface Props { text: string; n: number; done: boolean }
-
 /**
- * The whole line is always in the DOM: the untyped tail is transparent but still occupies
- * its space, so the box never reflows as the text arrives and screen readers get the
- * finished sentence instead of a stream of fragments.
+ * Types `text` out against a clock.
+ *
+ * The reveal writes to the DOM directly from a requestAnimationFrame loop rather than
+ * going through component state. A state update per character makes every character wait
+ * for a render *and* for Preact to run effects after paint, so the line ends up typing at
+ * whatever frame rate the page happens to manage — measured at ~78 ms per character on the
+ * quiz page, against an intended 7 ms. Reading the character count out of a precomputed
+ * schedule keeps the line on time: a dropped frame reveals several characters at once
+ * instead of delaying all of them.
+ *
+ * The whole line is always in the DOM, with the untyped tail transparent but still
+ * occupying its space, so the box never reflows as the text arrives and screen readers get
+ * the finished sentence rather than a stream of fragments.
  */
-export default function Typewriter({ text, n, done }: Props) {
+export default function Typewriter({ text, skipTick, onDone }: Props) {
+  const head = useRef<HTMLSpanElement>(null);
+  const tail = useRef<HTMLSpanElement>(null);
+  const caret = useRef<HTMLSpanElement>(null);
+  const times = useMemo(() => schedule(text), [text]);
+  /* Only used to jump to the end; the running reveal never re-renders this component. */
+  const [finished, setFinished] = useState(false);
+
+  useEffect(() => {
+    const show = (n: number) => {
+      if (head.current) head.current.textContent = text.slice(0, n);
+      if (tail.current) tail.current.textContent = text.slice(n);
+      if (caret.current) caret.current.hidden = n >= text.length;
+    };
+
+    if (reducedMotion() || skipTick > 0) {
+      show(text.length);
+      setFinished(true);
+      onDone();
+      return;
+    }
+
+    let raf = 0;
+    const start = performance.now();
+    let shown = -1;
+    const step = (now: number) => {
+      const n = visibleAt(times, now - start);
+      if (n !== shown) {
+        shown = n;
+        show(n);
+      }
+      if (n >= text.length) {
+        setFinished(true);
+        onDone();
+        return;
+      }
+      raf = requestAnimationFrame(step);
+    };
+    show(0);
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [text, times, skipTick]);
+
   return (
     <span class="tw">
-      <span>{text.slice(0, n)}</span>
-      {!done && <span class="tw-caret" aria-hidden="true">▌</span>}
-      <span class="tw-rest">{text.slice(n)}</span>
+      {/* Rendered once with the full text so the line is complete for assistive tech and
+          for a reader with scripting disabled; the loop above rewrites the split. */}
+      <span ref={head} />
+      <span ref={caret} class="tw-caret" aria-hidden="true" hidden={finished}>▌</span>
+      <span ref={tail} class="tw-rest">{text}</span>
     </span>
   );
 }
