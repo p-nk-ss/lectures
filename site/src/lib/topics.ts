@@ -9,7 +9,12 @@ export type TopicIcon =
   | 'ampoule'
   | 'capsule'
   | 'pill'
-  | 'thermo';
+  | 'thermo'
+  | 'skull'
+  | 'flask'
+  | 'lungs'
+  | 'brain'
+  | 'drop';
 
 export interface Topic {
   id: string;        // '01'..'08'
@@ -26,10 +31,10 @@ export const TOPICS: Topic[] = [
   { id: '02', order: 2, module: 1, title: 'Інгаляційний наркоз і неінгаляційний наркоз', short: 'Наркоз', color: 'var(--topic-02)', icons: ['ampoule', 'hp', 'capsule'] },
   { id: '03', order: 3, module: 1, title: 'Термінальні стани', short: 'Термінальні стани', color: 'var(--topic-03)', icons: ['kit', 'heart', 'hp'] },
   { id: '04', order: 4, module: 1, title: 'Реанімація та інтенсивна терапія при гострій серцево-судинній недостатності', short: 'Гостра серцево-судинна недостатність', color: 'var(--topic-04)', icons: ['heart', 'ecg', 'ampoule'] },
-  { id: '05', order: 5, module: 1, title: 'Реанімація та інтенсивна терапія при гострій дихальній недостатності', short: 'Гостра дихальна недостатність', color: 'var(--topic-05)', icons: ['hp', 'ecg', 'kit'] },
-  { id: '06', order: 6, module: 2, title: 'Види шоку: клініка, діагностика, реанімація та інтенсивна терапія', short: 'Шок', color: 'var(--topic-06)', icons: ['hp', 'heart', 'ampoule'] },
-  { id: '07', order: 7, module: 2, title: 'Коматозні стани: клініка, діагностика, реанімація та інтенсивна терапія', short: 'Коматозні стани', color: 'var(--topic-07)', icons: ['thermo', 'ecg', 'kit'] },
-  { id: '08', order: 8, module: 2, title: 'Гострі отруєння: клініка, діагностика, реанімація та інтенсивна терапія', short: 'Гострі отруєння', color: 'var(--topic-08)', icons: ['pill', 'capsule', 'syringe'] },
+  { id: '05', order: 5, module: 1, title: 'Реанімація та інтенсивна терапія при гострій дихальній недостатності', short: 'Гостра дихальна недостатність', color: 'var(--topic-05)', icons: ['lungs', 'ecg', 'hp'] },
+  { id: '06', order: 6, module: 2, title: 'Види шоку: клініка, діагностика, реанімація та інтенсивна терапія', short: 'Шок', color: 'var(--topic-06)', icons: ['drop', 'heart', 'ampoule'] },
+  { id: '07', order: 7, module: 2, title: 'Коматозні стани: клініка, діагностика, реанімація та інтенсивна терапія', short: 'Коматозні стани', color: 'var(--topic-07)', icons: ['brain', 'ecg', 'thermo'] },
+  { id: '08', order: 8, module: 2, title: 'Гострі отруєння: клініка, діагностика, реанімація та інтенсивна терапія', short: 'Гострі отруєння', color: 'var(--topic-08)', icons: ['skull', 'flask', 'capsule'] },
 ];
 
 export const topicById = (id: string): Topic | undefined => TOPICS.find((t) => t.id === id);
