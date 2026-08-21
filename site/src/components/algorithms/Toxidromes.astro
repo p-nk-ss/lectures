@@ -1,0 +1,144 @@
+---
+/**
+ * The five classic toxidromes. Pupil size is the fastest discriminator at the bedside, so
+ * it is drawn to scale rather than described in a column — a table cannot show that a
+ * pinpoint pupil and a blown pupil are the same finding measured differently.
+ *
+ * Hand-drawn SVG — explicit width/height, or the browser stretches it to the container and
+ * scales every stroke and label with it. Captions sized for IBM Plex Mono at 12–13 px
+ * (~7.2–7.8 px per character): the left column ends at x≈600, so lines stay under ~62
+ * characters.
+ */
+const rows = [
+  {
+    name: 'ХОЛІНЕРГІЧНИЙ',
+    pupil: 3,
+    tone: 'danger',
+    sign: 'Шкіра ВОЛОГА · слина, сльози, бронхорея',
+    src: 'Фосфорорганічні сполуки, карбамати, деякі гриби',
+    skin: 'ВОЛОГА',
+  },
+  {
+    name: 'АНТИХОЛІНЕРГІЧНИЙ',
+    pupil: 16,
+    tone: 'accent',
+    sign: 'Шкіра СУХА й гаряча · затримка сечі · делірій',
+    src: 'Атропін, антигістамінні, трициклічні антидепресанти',
+    skin: 'СУХА',
+  },
+  {
+    name: 'СИМПАТОМІМЕТИЧНИЙ',
+    pupil: 16,
+    tone: 'accent',
+    sign: 'Шкіра волога · тахікардія, гіпертензія, збудження',
+    src: 'Кокаїн, амфетаміни, теофілін',
+    skin: 'ВОЛОГА',
+  },
+  {
+    name: 'ОПІОЇДНИЙ',
+    pupil: 3,
+    tone: 'danger',
+    sign: 'Пригнічення дихання · кома · брадипное',
+    src: 'Морфін, героїн, метадон, трамадол, фентаніл',
+    skin: 'НОРМА',
+  },
+  {
+    name: 'СЕДАТИВНО-СНОДІЙНИЙ',
+    pupil: 8,
+    tone: 'ok',
+    sign: 'Пригнічення свідомості · дихання довго збережене',
+    src: 'Бензодіазепіни, барбітурати, алкоголь',
+    skin: 'НОРМА',
+  },
+];
+
+const ROW = 92;
+const TOP = 46;
+const height = TOP + rows.length * ROW + 10;
+---
+<svg
+  class="toxidromes"
+  viewBox={`0 0 760 ${height}`}
+  width="760"
+  height={height}
+  role="img"
+  aria-label="П'ять токсидромів із розміром зіниць: холінергічний і опіоїдний дають міоз, антихолінергічний і симпатоміметичний — мідріаз, седативно-снодійний — зіниці близькі до норми"
+>
+  <text class="axis" x="24" y="26">ТОКСИДРОМИ: ЗІНИЦІ ТА ШКІРА РОЗДІЛЯЮТЬ ЇХ ШВИДШЕ ЗА АНАЛІЗИ</text>
+
+  {rows.map((r, i) => {
+    const y = TOP + i * ROW;
+    const cy = y + 40;
+    return (
+      <g>
+        <rect class={`row ${r.tone}`} x="24" y={y} width="712" height="78" />
+        {/* eye: fixed iris, pupil drawn to scale */}
+        <circle class="iris" cx="66" cy={cy} r="22" />
+        <circle class={`pupil ${r.tone}`} cx="66" cy={cy} r={r.pupil} />
+        <text class={`name ${r.tone}`} x="112" y={y + 26}>{r.name}</text>
+        <text class="sign" x="112" y={y + 48}>{r.sign}</text>
+        <text class="src" x="112" y={y + 66}>{r.src}</text>
+        <text class={`skin ${r.tone}`} x="716" y={y + 26} text-anchor="end">{r.skin}</text>
+      </g>
+    );
+  })}
+</svg>
+
+<style>
+  .toxidromes {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-inline: auto;
+  }
+  .row {
+    fill: var(--surface-2);
+    stroke: var(--ink);
+    stroke-width: 3;
+  }
+  .row.ok { stroke: var(--ok); }
+  .row.accent { stroke: var(--accent); }
+  .row.danger { stroke: var(--danger); }
+  .iris {
+    fill: var(--surface);
+    stroke: var(--text-soft);
+    stroke-width: 3;
+  }
+  .pupil { fill: var(--text); }
+  .pupil.ok { fill: var(--ok); }
+  .pupil.accent { fill: var(--accent); }
+  .pupil.danger { fill: var(--danger); }
+  /* SVG text defaults to a black fill, so every text class needs an explicit one. */
+  .axis {
+    font-family: var(--font-display);
+    font-size: 10px;
+    fill: var(--accent);
+    letter-spacing: 0.5px;
+  }
+  .name {
+    font-family: var(--font-display);
+    font-size: 11px;
+    fill: var(--text);
+  }
+  .name.ok { fill: var(--ok); }
+  .name.accent { fill: var(--accent); }
+  .name.danger { fill: var(--danger); }
+  .skin {
+    font-family: var(--font-display);
+    font-size: 10px;
+    fill: var(--muted);
+  }
+  .skin.ok { fill: var(--ok); }
+  .skin.accent { fill: var(--accent); }
+  .skin.danger { fill: var(--danger); }
+  .sign {
+    font-family: var(--font-body);
+    font-size: 13px;
+    fill: var(--text-body);
+  }
+  .src {
+    font-family: var(--font-body);
+    font-size: 12px;
+    fill: var(--muted);
+  }
+</style>
