@@ -153,6 +153,17 @@ export default function Quiz({ topic, level, questions }: Props) {
   if (!started) {
     return (
       <div class="quiz quiz-intro">
+        {/* A monitor trace before the shift starts. Hotlinked from Giphy's CDN like the
+            result stickers, and decorative — the rules below carry the meaning. */}
+        <div class="intro-art" aria-hidden="true">
+          <img
+            src="https://media.giphy.com/media/WNSxSbRwVRz7q/giphy.gif"
+            alt=""
+            width={500}
+            height={375}
+            loading="lazy"
+          />
+        </div>
         <p class="kicker"><span class="g">★</span> ПРАВИЛА <span class="g">★</span></p>
         <ul class="rules">
           <li>
@@ -192,19 +203,20 @@ export default function Quiz({ topic, level, questions }: Props) {
         : `Ви встигли відповісти на ${answers.size} з ${pool.length}.`;
     /* Three outcomes, three stickers: flawless, passed-with-mistakes, failed. */
     const sticker = !won
-      ? { id: 'oS36z5ZEMrZYP2pFd0', w: 516, h: 516, alt: 'Анімація поразки: game over' }
+      ? { id: 'oS36z5ZEMrZYP2pFd0', file: 'giphy.gif', w: 516, h: 516, alt: 'Піксельна анімація: GAME OVER' }
       : perfect
-        ? { id: 'S1UvyIzO5wUPoEWh9i', w: 480, h: 384, alt: 'Анімація бездоганного проходження' }
-        : { id: 'VbtB71uYYChnZjGa6Y', w: 480, h: 480, alt: 'Анімація складеного тесту: not great, not terrible' };
+        ? { id: 'RtpmUzMbynBeCgEa5E', file: '200w.gif', w: 200, h: 200, alt: 'Аркадна анімація: GOOD GAME' }
+        : { id: 'zwb4AvXN67p6SlvbIW', file: 'giphy.gif', w: 480, h: 270, alt: 'Піксельна анімація: MISSION COMPLETE' };
 
     return (
       <div class={`quiz quiz-result ${won ? 'won' : 'lost'}`}>
         <Scene mood={won ? 'win' : 'lose'} />
         <div class="outcome-art">
           {/* Hotlinked from Giphy's CDN rather than copied into the repo: these are
-              third-party stickers, and the winning one alone is 1.6 MB. */}
+              third-party stickers. `file` picks the rendition — the art box is 190px
+              tall, so the 200w one is enough where the full-size gif runs to megabytes. */}
           <img
-            src={`https://media.giphy.com/media/${sticker.id}/giphy.gif`}
+            src={`https://media.giphy.com/media/${sticker.id}/${sticker.file}`}
             alt={sticker.alt}
             width={sticker.w}
             height={sticker.h}

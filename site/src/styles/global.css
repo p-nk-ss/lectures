@@ -547,6 +547,18 @@ b, strong { font-weight: 600; }
   border: var(--bw) solid var(--ink);
   box-shadow: var(--shadow-hard-lg);
 }
+/* The intro art is a monitor trace: it carries its own dark green screen, so it is framed
+   like a screen rather than blended into the card. Kept at the gif's own 4:3 and
+   small: stretched across the card the sweep crops to a sliver and reads as a green smear. */
+.quiz-intro .intro-art {
+  width: min(100%, 15rem);
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: var(--bw-sm) solid var(--ink);
+  background: #0b1206;
+}
+.quiz-intro .intro-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
 .quiz-intro .kicker { margin: 0; }
 .quiz-intro .rules { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
 .quiz-intro .rules li {
