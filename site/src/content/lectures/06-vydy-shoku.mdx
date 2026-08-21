@@ -22,6 +22,7 @@ import Dose from '../../components/callouts/Dose.astro';
 import ForDoctors from '../../components/callouts/ForDoctors.astro';
 import ClinicalCase from '../../components/callouts/ClinicalCase.astro';
 import T from '../../components/T.astro';
+import Figure from '../../components/Figure.astro';
 import Algorithm from '../../components/Algorithm.astro';
 import ShockMechanisms from '../../components/algorithms/ShockMechanisms.astro';
 
@@ -154,6 +155,15 @@ import ShockMechanisms from '../../components/algorithms/ShockMechanisms.astro';
 </Important>
 
 {/* CHANGED: у презентації сказано «швидке введення колоїдних або кристалоїдних розчинів». Приведено до чинних настанов: кристалоїди — перша лінія (сильна рекомендація), гідроксиетилкрохмаль — сильна рекомендація ПРОТИ (SSC 2021). */}
+
+<Figure
+  src="/images/lectures/06/intraosseous.jpg"
+  alt="Постановка внутрішньокісткового доступу в гомілку постраждалого"
+  caption="Внутрішньокістковий доступ: коли вену знайти не вдається, це найшвидший шлях увести рідину й препарати."
+  license="Фото Pfc. Kaimana Kalauli (DVIDS), Public domain, Wikimedia Commons"
+  width={843} height={1264}
+  maxWidth="20rem"
+/>
 
 <Dose icon="ampoule">
 **Кристалоїди — перша лінія** (сильна рекомендація). Перевагу мають **збалансовані розчини** перед 0,9 % натрію хлоридом (слабка рекомендація): великі об'єми фізіологічного розчину спричиняють гіперхлоремічний ацидоз.
@@ -293,6 +303,15 @@ Sepsis-3 прибрав із визначення критерії **систе�
 
 **Шкірних змін може не бути взагалі — у 10–20 % реакцій.** Пацієнт із раптовим бронхоспазмом або гіпотензією після контакту з тригером — це анафілаксія, навіть якщо шкіра чиста.
 </Important>
+
+<Figure
+  src="/images/lectures/06/urticaria.jpg"
+  alt="Кропив'янка на спині: зливні рожеві пухирі"
+  caption="Кропив'янка при системній реакції. Сама по собі вона ще не анафілаксія — рішення про адреналін ухвалюють за диханням і кровообігом."
+  license="Psixtras, CC0, Wikimedia Commons"
+  width={768} height={1024}
+  maxWidth="20rem"
+/>
 
 <Dose icon="syringe">
 **Адреналін внутрішньом'язово — перша лінія, навіть якщо є венозний доступ.** Розчин 1 мг/мл (1:1000), у **передньобокову поверхню середньої третини стегна**.

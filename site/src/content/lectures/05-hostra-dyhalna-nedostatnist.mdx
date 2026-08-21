@@ -24,6 +24,7 @@ import Dose from '../../components/callouts/Dose.astro';
 import ForDoctors from '../../components/callouts/ForDoctors.astro';
 import ClinicalCase from '../../components/callouts/ClinicalCase.astro';
 import T from '../../components/T.astro';
+import Figure from '../../components/Figure.astro';
 import Algorithm from '../../components/Algorithm.astro';
 import OxygenLadder from '../../components/algorithms/OxygenLadder.astro';
 
@@ -122,6 +123,15 @@ import OxygenLadder from '../../components/algorithms/OxygenLadder.astro';
 Раптове падіння сатурації більш ніж на **3 %** навіть у межах цільового діапазону — привід повністю переоцінити пацієнта: часто це перша ознака гострої події.
 </Important>
 
+<Figure
+  src="/images/lectures/05/pulse-oximeter.jpg"
+  alt="Пальцевий пульсоксиметр із показниками сатурації 96 відсотків і пульсу 85 за хвилину"
+  caption="Пульсоксиметр показує сатурацію й пульс, але не вентиляцію: нормальна SpO₂ не виключає ані гіперкапнії, ані отруєння чадним газом."
+  license="Stefan Bellini, CC0, Wikimedia Commons"
+  width={1000} height={754}
+  maxWidth="28rem"
+/>
+
 <Algorithm title="Щаблі респіраторної підтримки"><OxygenLadder /></Algorithm>
 
 <ForDoctors>
@@ -182,6 +192,15 @@ import OxygenLadder from '../../components/algorithms/OxygenLadder.astro';
 - порушення оксигенації: PaO₂/FiO₂ ≤ 300 мм рт. ст. **або SpO₂/FiO₂ ≤ 315** (за SpO₂ ≤ 97 %).
 
 Тяжкість в інтубованого пацієнта: легкий 200 < PaO₂/FiO₂ ≤ 300, помірний 100 < PaO₂/FiO₂ ≤ 200, тяжкий ≤ 100.
+
+<Figure
+  src="/images/lectures/05/ards-chest-xray.jpg"
+  alt="Рентгенограма грудної клітки з двобічними дифузними затемненнями при ГРДС"
+  caption="ГРДС на рентгенограмі: двобічні дифузні затемнення, які не пояснюються самою лише серцевою недостатністю."
+  license="Emerging Infectious Diseases (CDC), Public domain, Wikimedia Commons"
+  width={507} height={491}
+  maxWidth="24rem"
+/>
 
 <Important>
 Дві новації визначення 2023 року мають практичне значення саме для країн із обмеженими ресурсами. По-перше, діагноз можна поставити за **пульсоксиметром**, без аналізу газів крові. По-друге, підходить **ультразвук** замість рентгена. ГРДС перестав бути діагнозом, доступним лише там, де є газоаналізатор і цілодобовий рентген.
