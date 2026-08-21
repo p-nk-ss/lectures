@@ -37,6 +37,9 @@ const hudTitle = `ЛЕКЦІЯ ${topicId} · ${(topic?.short ?? entry.data.title
     <span class="hud-title">{hudTitle}</span>
     <span class="hud-right">
       <button class="hud-menu" id="slide-menu-btn" aria-expanded="false" aria-controls="slide-menu" aria-label="Список слайдів">☰</button>
+      {/* The presentation chrome has no header, so this is the only way to the progress
+          dialog from inside a lecture — which is exactly where a reader wants to reset it. */}
+      <button class="hud-menu" id="settings-open" aria-label="Прогрес і скидання">⚙</button>
       <span class="beat hud-heart g" aria-hidden="true">♥</span>
       <span class="bar hud-bar" role="progressbar" aria-label="Прогрес лекції" aria-valuemin="1" aria-valuemax={total} aria-valuenow="1" id="hud-bar">
         <span id="hud-fill" style={`width:${Math.round((1 / total) * 100)}%`}></span>

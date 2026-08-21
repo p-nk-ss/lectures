@@ -1,0 +1,277 @@
+---
+/**
+ * Progress settings. Everything this site remembers about a reader lives in localStorage,
+ * which means it is invisible: there is no account page to look at and no server to ask.
+ * This dialog is that page — it shows what is stored and is the only way to undo it.
+ *
+ * The rows are rendered at build time from the same lecture list and slide count the home
+ * cards use, so the two never disagree; the state text and the buttons are filled in on
+ * open, because localStorage cannot be read while the page is being built.
+ */
+import { getCollection } from 'astro:content';
+import { TOPICS } from '../lib/topics';
+import { filterVisible, showDrafts } from '../lib/visibility';
+
+const lectures = filterVisible(await getCollection('lectures'), {
+  prod: import.meta.env.PROD,
+  showDrafts: showDrafts(),
+}).filter((l) => l.data.order <= 8);
+
+const bySlugPrefix = new Map(lectures.map((l) => [l.id.slice(0, 2), l]));
+const quizzes = await getCollection('quizzes');
+
+/* Title slide + one per h2 + final slide, matching the lecture page and the home cards. */
+const slideCount = (body: string | undefined) => (body?.match(/^## /gm)?.length ?? 0) + 2;
+
+const rows = TOPICS.map((t) => {
+  const lecture = bySlugPrefix.get(t.id);
+  if (!lecture) return null;
+  return {
+    id: t.id,
+    short: t.short,
+    slug: lecture.id,
+    slides: slideCount(lecture.body),
+    quizzes: quizzes.filter((q) => q.data.topic === t.id).length,
+  };
+}).filter((r): r is NonNullable<typeof r> => r !== null);
+---
+<dialog id="settings-dialog" aria-labelledby="settings-title">
+  <div class="s-head">
+    <p class="kicker" id="settings-title"><span class="g">◆</span> ПРОГРЕС</p>
+    <button id="settings-close" aria-label="Закрити">✕</button>
+  </div>
+
+  <p class="s-note">
+    Прогрес лекцій і результати тестів зберігаються лише в цьому браузері — вони не
+    передаються нікуди й не синхронізуються між пристроями. Скидання незворотне.
+  </p>
+
+  <ul class="s-list">
+    {rows.map((r) => (
+      <li data-topic={r.id} data-slug={r.slug} data-slides={r.slides} data-quizzes={r.quizzes}>
+        <span class="s-title"><b>{r.id}</b> {r.short}</span>
+        <span class="s-state" data-state>—</span>
+        <span class="s-actions">
+          <button data-reset="lecture" disabled>Прогрес</button>
+          <button data-reset="quizzes" disabled>Тести</button>
+        </span>
+      </li>
+    ))}
+  </ul>
+
+  <div class="s-bulk">
+    <button data-reset="all-progress" data-confirm disabled>Скинути прогрес усіх лекцій</button>
+    <button data-reset="all-quizzes" data-confirm disabled>Скинути всі тести</button>
+    <button class="s-danger" data-reset="everything" data-confirm disabled>Скинути все</button>
+  </div>
+  <p class="s-empty" hidden>Поки що нічого не збережено.</p>
+</dialog>
+
+<script>
+  import {
+    lectureState,
+    topicBests,
+    ownKeys,
+    clearLecture,
+    clearTopicQuizzes,
+    clearAllProgress,
+    clearAllQuizzes,
+    clearEverything,
+  } from '../lib/storage';
+
+  const dialog = document.getElementById('settings-dialog') as HTMLDialogElement | null;
+  if (dialog) {
+    const rows = [...dialog.querySelectorAll<HTMLLIElement>('.s-list li')];
+    const bulk = [...dialog.querySelectorAll<HTMLButtonElement>('.s-bulk button')];
+    const empty = dialog.querySelector<HTMLElement>('.s-empty')!;
+    /* A reset has to reach the cards and the HUD, and those read storage once on load.
+       Reloading on close is the honest way to do that without a second source of truth. */
+    let dirty = false;
+
+    const plural = (n: number, one: string, few: string, many: string) => {
+      const mod10 = n % 10;
+      const mod100 = n % 100;
+      if (mod10 === 1 && mod100 !== 11) return one;
+      if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+      return many;
+    };
+
+    function paint() {
+      for (const row of rows) {
+        const { slug, topic, slides } = row.dataset;
+        const { pct, read } = lectureState(slug!, Number(slides) || 1);
+        const bests = topicBests(topic!);
+        const parts: string[] = [];
+        if (read) parts.push('прочитано');
+        else if (pct > 0) parts.push(`${pct} %`);
+        if (bests.length) parts.push(`${bests.length} ${plural(bests.length, 'тест', 'тести', 'тестів')}`);
+        const state = row.querySelector<HTMLElement>('[data-state]')!;
+        state.textContent = parts.length ? parts.join(' · ') : '—';
+        state.dataset.on = parts.length ? '1' : '';
+        row.querySelector<HTMLButtonElement>('[data-reset="lecture"]')!.disabled = pct === 0 && !read;
+        row.querySelector<HTMLButtonElement>('[data-reset="quizzes"]')!.disabled = bests.length === 0;
+      }
+
+      const keys = ownKeys();
+      const has = (p: string) => keys.some((k) => k.startsWith(`aiti:${p}`));
+      const anyProgress = has('progress:') || has('read:');
+      const anyQuiz = has('quiz:');
+      setDisabled('all-progress', !anyProgress);
+      setDisabled('all-quizzes', !anyQuiz);
+      setDisabled('everything', keys.length === 0);
+      empty.hidden = keys.length > 0;
+    }
+
+    function setDisabled(action: string, off: boolean) {
+      const b = bulk.find((x) => x.dataset.reset === action);
+      if (!b) return;
+      b.disabled = off;
+      if (off) armed.delete(b);
+      if (b.dataset.label) b.textContent = b.dataset.label;
+    }
+
+    /* Bulk resets ask twice instead of opening a native confirm(): the second press is the
+       confirmation, and it disarms itself so a stray double-click cannot wipe the lot. */
+    const armed = new Set<HTMLButtonElement>();
+    function arm(btn: HTMLButtonElement) {
+      if (!btn.dataset.label) btn.dataset.label = btn.textContent ?? '';
+      armed.add(btn);
+      btn.textContent = 'ТОЧНО? НАТИСНІТЬ ЩЕ РАЗ';
+      btn.dataset.armed = '1';
+      window.setTimeout(() => disarm(btn), 5000);
+    }
+    function disarm(btn: HTMLButtonElement) {
+      armed.delete(btn);
+      delete btn.dataset.armed;
+      if (btn.dataset.label) btn.textContent = btn.dataset.label;
+    }
+
+    dialog.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-reset]');
+      if (!btn) {
+        if (e.target === dialog) dialog.close();
+        return;
+      }
+      const action = btn.dataset.reset!;
+      if (btn.dataset.confirm !== undefined && !armed.has(btn)) {
+        bulk.forEach(disarm);
+        arm(btn);
+        return;
+      }
+      disarm(btn);
+
+      const row = btn.closest<HTMLLIElement>('li');
+      let removed = 0;
+      if (action === 'lecture') removed = clearLecture(row!.dataset.slug!);
+      else if (action === 'quizzes') removed = clearTopicQuizzes(row!.dataset.topic!);
+      else if (action === 'all-progress') removed = clearAllProgress();
+      else if (action === 'all-quizzes') removed = clearAllQuizzes();
+      else if (action === 'everything') removed = clearEverything();
+
+      if (removed > 0) dirty = true;
+      paint();
+    });
+
+    document.getElementById('settings-open')?.addEventListener('click', () => {
+      bulk.forEach(disarm);
+      paint();
+      dialog.showModal();
+    });
+    document.getElementById('settings-close')?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => { if (dirty) location.reload(); });
+  }
+</script>
+
+<style>
+  dialog {
+    width: min(46rem, 92vw);
+    max-height: 86vh;
+    overflow-y: auto;
+    border: var(--bw) solid var(--ink);
+    background: var(--surface);
+    color: var(--text);
+    padding: 1.375rem;
+    box-shadow: var(--shadow-hard-xl);
+  }
+  dialog::backdrop { background: rgba(15, 16, 32, 0.72); }
+
+  .s-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .s-head .kicker { margin: 0; }
+  #settings-close {
+    display: inline-flex;
+    background: var(--surface-2);
+    border: var(--bw-sm) solid var(--ink);
+    padding: 0.3rem 0.5rem;
+    cursor: pointer;
+    color: var(--muted);
+    font-family: var(--font-body);
+  }
+  #settings-close:hover { color: var(--accent); border-color: var(--accent); }
+
+  .s-note {
+    margin: 0.875rem 0 1.25rem;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .s-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+  .s-list li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    background: var(--surface-2);
+    border: var(--bw-sm) solid var(--ink);
+  }
+  .s-title { font-size: 1rem; line-height: 1.4; }
+  .s-title b { font-family: var(--font-display); font-size: 10px; color: var(--accent); margin-right: 0.5rem; }
+  .s-state {
+    font-size: 0.8125rem;
+    color: var(--muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .s-state[data-state][data-on='1'] { color: var(--ok); }
+  .s-actions { display: flex; gap: 0.375rem; }
+
+  .s-list button, .s-bulk button {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    color: var(--text);
+    background: var(--surface-3);
+    border: var(--bw-sm) solid var(--ink);
+    padding: 0.35rem 0.6rem;
+    cursor: pointer;
+  }
+  .s-list button:hover:not(:disabled), .s-bulk button:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  /* Disabled means there is nothing stored to clear, not that the control is broken. */
+  .s-list button:disabled, .s-bulk button:disabled {
+    color: var(--muted);
+    border-color: var(--muted-border);
+    border-style: dashed;
+    cursor: default;
+  }
+
+  .s-bulk { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.25rem; }
+  .s-bulk button { padding: 0.5rem 0.75rem; }
+  .s-bulk .s-danger:not(:disabled) { color: var(--danger); border-color: var(--danger); }
+  .s-bulk button[data-armed]:not(:disabled) {
+    color: var(--ink);
+    background: var(--danger);
+    border-color: var(--ink);
+  }
+
+  .s-empty { margin: 1rem 0 0; font-size: 0.9375rem; color: var(--muted); }
+
+  @media (max-width: 44rem) {
+    .s-list li { grid-template-columns: minmax(0, 1fr); gap: 0.375rem; }
+    .s-state { white-space: normal; }
+  }
+</style>
