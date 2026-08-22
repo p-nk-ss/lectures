@@ -205,16 +205,17 @@ export default function Quiz({ topic, level, questions }: Props) {
     const sticker = !won
       ? { id: 'oS36z5ZEMrZYP2pFd0', file: 'giphy.gif', w: 516, h: 516, alt: 'Піксельна анімація: GAME OVER' }
       : perfect
-        ? { id: 'RtpmUzMbynBeCgEa5E', file: '200w.gif', w: 200, h: 200, alt: 'Аркадна анімація: GOOD GAME' }
-        : { id: 'zwb4AvXN67p6SlvbIW', file: 'giphy.gif', w: 480, h: 270, alt: 'Піксельна анімація: MISSION COMPLETE' };
+        ? { id: 'S1UvyIzO5wUPoEWh9i', file: 'giphy.gif', w: 480, h: 384, alt: 'Анімація бездоганного проходження' }
+        : { id: 'VbtB71uYYChnZjGa6Y', file: 'giphy.gif', w: 480, h: 480, alt: 'Анімація складеного тесту: not great, not terrible' };
 
     return (
       <div class={`quiz quiz-result ${won ? 'won' : 'lost'}`}>
         <Scene mood={won ? 'win' : 'lose'} />
         <div class="outcome-art">
           {/* Hotlinked from Giphy's CDN rather than copied into the repo: these are
-              third-party stickers. `file` picks the rendition — the art box is 190px
-              tall, so the 200w one is enough where the full-size gif runs to megabytes. */}
+              third-party stickers, and the winning one alone is 1.6 MB. `file` picks the
+              rendition — the art box is 190px tall, so a 200w copy is enough when a
+              replacement sticker runs to megabytes. */}
           <img
             src={`https://media.giphy.com/media/${sticker.id}/${sticker.file}`}
             alt={sticker.alt}
