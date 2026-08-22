@@ -1,0 +1,20 @@
+/**
+ * Cloudflare Workers deployment. The site is static — there is no Worker script, only the
+ * built assets — so `assets.directory` is the whole configuration and `main` is omitted.
+ *
+ * The dashboard's Workers Builds runs `npm run build` (which also writes the Pagefind
+ * index into dist/) and then `npx wrangler deploy`, both from this directory: the project's
+ * Root directory in the build settings is `site`, not the repository root.
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lectures",
+  "compatibility_date": "2026-08-22",
+  "assets": {
+    "directory": "./dist",
+    /* Astro emits directory URLs (/lektsiyi/<slug>/index.html), so requests must resolve
+       to index.html with or without the trailing slash. */
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  }
+}
