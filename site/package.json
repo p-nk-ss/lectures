@@ -11,6 +11,7 @@
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run",
+    "lint:quizzes": "node scripts/lint-quizzes.mjs",
     "astro": "astro"
   },
   "dependencies": {
