@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
+import { groupBanks } from '../lib/banks';
 import { TOPICS } from '../lib/topics';
 import { filterVisible, showDrafts } from '../lib/visibility';
 
@@ -9,7 +10,9 @@ const visible = filterVisible(all, { prod: import.meta.env.PROD, showDrafts: sho
   .filter((l) => l.data.order <= 8);
 const bySlugPrefix = new Map(visible.map((l) => [l.id.slice(0, 2), l]));
 const quizzes = await getCollection('quizzes');
-const quizCount = (topic: string) => quizzes.filter((q) => q.data.topic === topic).length;
+/* Count banks, not files: one quiz is spread over several content files. */
+const banks = groupBanks(quizzes);
+const quizCount = (topic: string) => banks.filter((b) => b.topic === topic).length;
 // Slide count = title slide + one per h2 + final slide, matching the lecture page.
 const slideCount = (body: string | undefined) => (body?.match(/^## /gm)?.length ?? 0) + 2;
 const first = [...visible].sort((a, b) => a.data.order - b.data.order)[0];

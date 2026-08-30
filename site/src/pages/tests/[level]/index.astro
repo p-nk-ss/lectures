@@ -1,0 +1,104 @@
+---
+/** Topics available for one level. */
+import { getCollection } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import { groupBanks } from '../../../lib/banks';
+import { LEVELS, levelById } from '../../../lib/levels';
+import { QUIZ_RUN_SIZE } from '../../../lib/quiz';
+import { topicById } from '../../../lib/topics';
+
+export async function getStaticPaths() {
+  /* 99 is a fixture: it has a bank but no topic in the registry, and must not be listed. */
+  const banks = groupBanks(await getCollection('quizzes')).filter((b) => topicById(b.topic));
+  return LEVELS.map((l) => ({
+    params: { level: l.id },
+    props: { banks: banks.filter((b) => b.level === l.id).map((b) => ({ topic: b.topic, size: b.questions.length })) },
+  }));
+}
+
+const { level } = Astro.params;
+const { banks } = Astro.props;
+const info = levelById(level!)!;
+---
+<Base title={`Тести: ${info.word} — АіІТ`}>
+  <header class="page-head">
+    <a class="back" href="/tests/"><span class="g">←</span> Вибір рівня</a>
+    <p class="kicker"><span class="g">{info.glyph}</span> {info.label}</p>
+    <h1>ОБЕРІТЬ ТЕМУ</h1>
+  </header>
+
+  <div class="topics">
+    {banks.map((b) => {
+      const t = topicById(b.topic);
+      const runSize = Math.min(QUIZ_RUN_SIZE, b.size);
+      return (
+        <a class="topic-card press" href={`/tests/${level}/${b.topic}/`} data-topic={b.topic} data-level={level}>
+          <span class="lvl">LVL {b.topic}</span>
+          <span class="title">{(t?.short ?? `ТЕМА ${b.topic}`).toUpperCase()}</span>
+          <span class="count">
+            {runSize} питань{b.size > QUIZ_RUN_SIZE && ` з банку на ${b.size}`}
+          </span>
+          <span class="best" data-best></span>
+        </a>
+      );
+    })}
+  </div>
+
+  <script>
+    /* Best results live in localStorage only, so they are filled in on load. */
+    document.querySelectorAll<HTMLAnchorElement>('.topic-card').forEach((card) => {
+      const raw = localStorage.getItem(`aiti:quiz:${card.dataset.topic}:${card.dataset.level}`);
+      if (!raw) return;
+      try {
+        const b = JSON.parse(raw);
+        card.querySelector('[data-best]')!.textContent = `найкраще: ${b.score}/${b.total}`;
+      } catch {}
+    });
+  </script>
+
+  <style>
+    .page-head { padding-block: 2.5rem 1.5rem; }
+    .back {
+      display: inline-block;
+      margin-bottom: 1.25rem;
+      color: var(--muted);
+      font-size: 0.8125rem;
+      text-decoration: none;
+    }
+    .back:hover { color: var(--accent); }
+    .page-head .kicker { margin: 0 0 0.75rem; color: var(--ok); }
+    .page-head h1 {
+      margin: 0;
+      font-size: clamp(18px, 3vw, 30px);
+      line-height: 1.5;
+      text-shadow: 4px 4px 0 var(--title-shadow);
+    }
+
+    .topics {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+      margin-bottom: 3rem;
+    }
+    .topic-card {
+      display: grid;
+      gap: 0.5rem;
+      align-content: start;
+      background: var(--surface);
+      border: var(--bw) solid var(--ink);
+      box-shadow: var(--shadow-hard-lg);
+      padding: 1.25rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .lvl {
+      font-family: var(--font-display);
+      font-size: 10px;
+      line-height: 1.7;
+      color: var(--accent);
+    }
+    .title { font-weight: 600; line-height: 1.4; }
+    .best, .count { color: var(--muted); font-size: 0.8125rem; }
+    .best:empty { display: none; }
+  </style>
+</Base>

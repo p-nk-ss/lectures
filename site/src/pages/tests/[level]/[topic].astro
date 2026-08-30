@@ -3,29 +3,30 @@ import { getCollection } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import Quiz from '../../../components/quiz/Quiz.tsx';
 import { groupBanks } from '../../../lib/banks';
+import { levelById } from '../../../lib/levels';
 import { QUIZ_RUN_SIZE } from '../../../lib/quiz';
 import { topicById } from '../../../lib/topics';
 
 /* One route per bank, not per file: a quiz is spread over several content files. */
 export async function getStaticPaths() {
   return groupBanks(await getCollection('quizzes')).map((b) => ({
-    params: { topic: b.topic, level: b.level },
+    params: { level: b.level, topic: b.topic },
     props: { topicId: b.topic, level: b.level, bankSize: b.questions.length },
   }));
 }
 
 const { topicId, level, bankSize } = Astro.props;
 const topic = topicById(topicId);
-const levelName = level === 'nurse' ? 'медсестра' : 'лікар';
+const info = levelById(level)!;
 /* The questions themselves arrive from bank.json; the page only needs the count. */
 const runSize = Math.min(QUIZ_RUN_SIZE, bankSize);
 ---
-<Base title={`Тест: ${topic?.short ?? topicId} (${levelName})`}>
+<Base title={`Тест: ${topic?.short ?? topicId} (${info.word})`}>
   <header class="page-head">
-    <p class="topic-label"><span class="g">★</span> BOSS FIGHT · {levelName.toUpperCase()} · {runSize} ПИТАНЬ <span class="g">★</span></p>
+    <p class="topic-label"><span class="g">★</span> BOSS FIGHT · {info.label} · {runSize} ПИТАНЬ <span class="g">★</span></p>
     <h1>{(topic?.short ?? 'Тема ' + topicId).toUpperCase()}</h1>
   </header>
-  <Quiz client:load topic={topicId} level={level} bankUrl={`/tests/${topicId}/${level}/bank.json`} bankSize={bankSize} />
+  <Quiz client:load topic={topicId} level={level} bankUrl={`/tests/${level}/${topicId}/bank.json`} bankSize={bankSize} />
   <style>
     /* Kept short: on a laptop every pixel here is a pixel the run does not get. */
     .page-head { padding-block: 1.75rem 1.25rem; }

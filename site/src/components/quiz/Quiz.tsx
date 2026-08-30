@@ -267,7 +267,7 @@ export default function Quiz({ topic, level, bankUrl, bankSize }: Props) {
           )}
           <button onClick={restart}>Пройти заново</button>
         </div>
-        <a href="/tests/">До списку тестів</a>
+        <a href={`/tests/${level}/`}>До списку тестів</a>
       </div>
     );
   }

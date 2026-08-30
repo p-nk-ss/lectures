@@ -1,54 +1,57 @@
 ---
+/**
+ * Level choice.
+ *
+ * The reader belongs to one track and would otherwise ignore half of sixteen cards on
+ * every visit. Choosing the level first also makes the address read in the same order as
+ * the navigation: /tests/ → /tests/nurse/ → /tests/nurse/03/.
+ */
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { groupBanks, type Bank } from '../../lib/banks';
+import { groupBanks } from '../../lib/banks';
+import { LEVELS } from '../../lib/levels';
 import { QUIZ_RUN_SIZE } from '../../lib/quiz';
 import { topicById } from '../../lib/topics';
 
-const banks = groupBanks(await getCollection('quizzes'));
-const byTopic = new Map<string, Bank[]>();
-for (const b of banks) byTopic.set(b.topic, [...(byTopic.get(b.topic) ?? []), b]);
-const topics = [...byTopic.keys()];
+/* 99 is a fixture: it has a bank but no topic in the registry, and must not be listed. */
+const banks = groupBanks(await getCollection('quizzes')).filter((b) => topicById(b.topic));
+const countFor = (level: string) => banks.filter((b) => b.level === level).length;
 ---
 <Base title="Тести — АіІТ">
   <header class="page-head">
     <p class="kicker"><span class="g">★</span> BOSS FIGHTS <span class="g">★</span></p>
     <h1>ТЕСТИ ДЛЯ САМОКОНТРОЛЮ</h1>
-    <p class="lead">Найкращий результат зберігається у вашому браузері.</p>
+    <p class="lead">Оберіть рівень — далі відкриється список тем. Найкращий результат зберігається у вашому браузері.</p>
   </header>
-  {topics.map((id) => {
-    const t = topicById(id);
-    return (
-      <section class="topic-tests">
-        <h2>LVL {id} · {(t?.short ?? `ТЕМА ${id}`).toUpperCase()}</h2>
-        <div class="levels">
-          {(byTopic.get(id) ?? []).map((b) => (
-            <a class="level-card press" href={`/tests/${id}/${b.level}/`} data-topic={id} data-level={b.level}>
-              <span class="level-name">
-                <span class="g">{b.level === 'nurse' ? '♥' : '✚'}</span>{' '}
-                {b.level === 'nurse' ? 'МЕДСЕСТРА' : 'ЛІКАР'}
-              </span>
-              <span class="count">
-                {Math.min(QUIZ_RUN_SIZE, b.questions.length)} питань
-                {b.questions.length > QUIZ_RUN_SIZE && ` з банку на ${b.questions.length}`}
-              </span>
-              <span class="best" data-best></span>
-            </a>
-          ))}
-        </div>
-      </section>
-    );
-  })}
+
+  <div class="levels">
+    {LEVELS.map((l) => (
+      <a class="level-pick press" href={`/tests/${l.id}/`} data-level={l.id}>
+        <span class="pick-name"><span class="g">{l.glyph}</span> {l.label}</span>
+        <span class="pick-blurb">{l.blurb}</span>
+        <span class="pick-meta">
+          {countFor(l.id)} тестів · {QUIZ_RUN_SIZE} питань за прогін
+          <span class="pick-done" data-done></span>
+        </span>
+      </a>
+    ))}
+  </div>
+
   <script>
-    document.querySelectorAll<HTMLAnchorElement>('.level-card').forEach((card) => {
-      const raw = localStorage.getItem(`aiti:quiz:${card.dataset.topic}:${card.dataset.level}`);
-      if (!raw) return;
-      try {
-        const b = JSON.parse(raw);
-        card.querySelector('[data-best]')!.textContent = `найкраще: ${b.score}/${b.total}`;
-      } catch {}
-    });
+    import { LEVELS } from '../../lib/levels';
+    import { getBest } from '../../lib/storage';
+    import { TOPICS } from '../../lib/topics';
+
+    /* How many topics this level already has a saved result for. Read on load, like the
+       home cards: nothing is stored server-side. */
+    for (const l of LEVELS) {
+      const card = document.querySelector<HTMLElement>(`.level-pick[data-level="${l.id}"] [data-done]`);
+      if (!card) continue;
+      const done = TOPICS.filter((t) => getBest(t.id, l.id)).length;
+      if (done) card.textContent = ` · складено ${done} з ${TOPICS.length}`;
+    }
   </script>
+
   <style>
     .page-head { padding-block: 3.25rem 1.5rem; }
     .page-head h1 {
@@ -57,36 +60,33 @@ const topics = [...byTopic.keys()];
       line-height: 1.5;
       text-shadow: 4px 4px 0 var(--title-shadow);
     }
-    .lead { color: var(--text-soft); margin: 0; }
+    .lead { color: var(--text-soft); margin: 0; max-width: 46rem; }
 
-    .topic-tests { margin-block: 2.25rem; }
-    .topic-tests h2 {
-      margin: 0 0 1rem;
-      font-family: var(--font-display);
-      font-size: 10px;
-      line-height: 1.8;
-      color: var(--accent);
-    }
-    .levels { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); }
-    .level-card {
+    .levels {
       display: grid;
-      gap: 0.5rem;
+      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+      margin-block: 1rem 3rem;
+    }
+    .level-pick {
+      display: grid;
+      gap: 0.875rem;
       align-content: start;
       background: var(--surface);
       border: var(--bw) solid var(--ink);
-      box-shadow: var(--shadow-hard-lg);
-      padding: 1.25rem;
+      box-shadow: var(--shadow-hard-xl);
+      padding: 2rem 1.75rem;
       text-decoration: none;
       color: var(--text);
     }
-    .level-name {
+    .pick-name {
       font-family: var(--font-display);
-      font-size: 10px;
+      font-size: 14px;
       line-height: 1.7;
       color: var(--ok);
     }
-    .level-name :global(.g) { font-size: 0.875rem; }
-    .best, .count { color: var(--muted); font-size: 0.8125rem; }
-    .best:empty { display: none; }
+    .pick-name :global(.g) { font-size: 1.125rem; }
+    .pick-blurb { color: var(--text-soft); line-height: 1.6; }
+    .pick-meta { color: var(--muted); font-size: 0.8125rem; }
   </style>
 </Base>

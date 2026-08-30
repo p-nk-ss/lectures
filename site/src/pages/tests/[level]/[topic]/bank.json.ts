@@ -11,7 +11,7 @@ import { groupBanks } from '../../../../lib/banks';
  */
 export const getStaticPaths: GetStaticPaths = async () =>
   groupBanks(await getCollection('quizzes')).map((b) => ({
-    params: { topic: b.topic, level: b.level },
+    params: { level: b.level, topic: b.topic },
     props: { questions: b.questions },
   }));
 
