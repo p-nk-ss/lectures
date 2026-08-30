@@ -30,7 +30,7 @@ const countFor = (level: string) => banks.filter((b) => b.level === level).lengt
         <span class="pick-name"><span class="g">{l.glyph}</span> {l.label}</span>
         <span class="pick-blurb">{l.blurb}</span>
         <span class="pick-meta">
-          {countFor(l.id)} тестів · {QUIZ_RUN_SIZE} питань за прогін
+          {countFor(l.id)} тем · по {QUIZ_RUN_SIZE} питань у прогоні
           <span class="pick-done" data-done></span>
         </span>
       </a>
