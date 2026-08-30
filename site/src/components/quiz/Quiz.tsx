@@ -6,23 +6,31 @@ import {
   isCorrect,
   livesLeft,
   outcomeOf,
+  pickRun,
   QUIZ_LIVES,
+  QUIZ_RUN_SIZE,
   QUIZ_TIME_LIMIT,
+  shuffleOptions,
   type Question,
   type QuizLevel,
   type QuizOutcome,
 } from '../../lib/quiz';
-import { saveBest } from '../../lib/storage';
+import { getSeen, pushSeen, saveBest } from '../../lib/storage';
 import Scene, { type Mood } from './Scene';
 import Typewriter from './Typewriter';
 
-interface Props { topic: string; level: QuizLevel; questions: Question[] }
+interface Props { topic: string; level: QuizLevel; bankUrl: string; bankSize: number }
 
 /* The doctor has a name; the student is the reader and never speaks. */
 const DOCTOR = 'ВІРДЖИНІЯ';
 
-export default function Quiz({ topic, level, questions }: Props) {
-  const [pool, setPool] = useState<Question[]>(questions);
+export default function Quiz({ topic, level, bankUrl, bankSize }: Props) {
+  /* The bank is far larger than one run and is fetched rather than inlined into the page:
+     the reader is on the rules panel while it arrives, and the run only needs it at the
+     moment it is assembled. */
+  const [bank, setBank] = useState<Question[] | null>(null);
+  const [bankError, setBankError] = useState(false);
+  const [pool, setPool] = useState<Question[]>([]);
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number[]>([]);
   const [checked, setChecked] = useState(false);
@@ -53,6 +61,34 @@ export default function Quiz({ topic, level, questions }: Props) {
   const [typed, setTyped] = useState(false);
   const [skipTick, setSkipTick] = useState(0);
   useEffect(() => { setTyped(false); setSkipTick(0); }, [line]);
+
+  const loadBank = () => {
+    setBankError(false);
+    fetch(bankUrl)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((d) => setBank(d.questions as Question[]))
+      .catch(() => setBankError(true));
+  };
+  useEffect(loadBank, [bankUrl]);
+
+  /* One run: a fresh sample, its options reordered, and the ids remembered so the next
+     run reaches for something else. */
+  const startRun = () => {
+    if (!bank) return;
+    const run = pickRun(bank, getSeen(topic, level)).map((q) => shuffleOptions(q));
+    pushSeen(topic, level, run.map((q) => q.id));
+    setPool(run);
+    setPractice(false);
+    setStarted(true);
+    setIdx(0);
+    setSelected([]);
+    setChecked(false);
+    setAnswers(new Map());
+    setWrong(0);
+    setReacting(false);
+    setSecondsLeft(QUIZ_TIME_LIMIT);
+    setOutcome(null);
+  };
 
   const finish = (o: QuizOutcome, at: Map<string, number[]>) => {
     if (!practice) {
@@ -114,7 +150,7 @@ export default function Quiz({ topic, level, questions }: Props) {
 
   const retryWrong = () => {
     const { wrongIds } = computeResult(pool, answers);
-    setPool(questions.filter((x) => wrongIds.includes(x.id)));
+    setPool(pool.filter((x) => wrongIds.includes(x.id)));
     setPractice(true);
     setStarted(true);
     setIdx(0);
@@ -126,19 +162,8 @@ export default function Quiz({ topic, level, questions }: Props) {
     setOutcome(null);
   };
 
-  const restart = () => {
-    setPool(questions);
-    setPractice(false);
-    setStarted(true);
-    setIdx(0);
-    setSelected([]);
-    setChecked(false);
-    setAnswers(new Map());
-    setWrong(0);
-    setReacting(false);
-    setSecondsLeft(QUIZ_TIME_LIMIT);
-    setOutcome(null);
-  };
+  /* "Пройти заново" means a new sample, not the same twenty again. */
+  const restart = startRun;
 
   const hearts = (cls: string) => (
     <span class={cls} aria-label={`Життя: ${lives} з ${QUIZ_LIVES}`}>
@@ -167,8 +192,11 @@ export default function Quiz({ topic, level, questions }: Props) {
         <p class="kicker"><span class="g">★</span> ПРАВИЛА <span class="g">★</span></p>
         <ul class="rules">
           <li>
-            <b>{questions.length}</b>
-            <span>питань — одне за одним, повернутись назад не можна</span>
+            <b>{Math.min(QUIZ_RUN_SIZE, bankSize)}</b>
+            <span>
+              питань — одне за одним, повернутись назад не можна
+              {bankSize > QUIZ_RUN_SIZE && ' (щоразу інші, з банку на ' + bankSize + ')'}
+            </span>
           </li>
           <li>
             <b>{formatClock(QUIZ_TIME_LIMIT)}</b>
@@ -182,9 +210,15 @@ export default function Quiz({ topic, level, questions }: Props) {
         <p class="intro-note">
           Після завершення можна розібрати помилкові питання без таймера й життів.
         </p>
-        <button class="primary" onClick={() => setStarted(true)}>
-          <span class="g">▶</span> ПОЧАТИ ЗМІНУ
+        <button class="primary" onClick={startRun} disabled={!bank}>
+          <span class="g">▶</span> {bank ? 'ПОЧАТИ ЗМІНУ' : 'ЗАВАНТАЖЕННЯ…'}
         </button>
+        {bankError && (
+          <p class="bank-error" role="alert">
+            Не вдалося завантажити питання.{' '}
+            <button class="retry" onClick={loadBank}>Спробувати ще раз</button>
+          </p>
+        )}
       </div>
     );
   }

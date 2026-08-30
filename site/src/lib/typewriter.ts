@@ -1,7 +1,7 @@
 /** Timing for the dialogue typewriter. Kept out of the component so it can be tested. */
 
 /** Base delay between characters, in ms. Fast enough that a 20-question run does not
-    lose meaningful time off the 10-minute clock. */
+    lose meaningful time off the run clock. */
 export const TYPE_MS = 12;
 
 /** Punctuation gets a beat after it, the way game dialogue does. */

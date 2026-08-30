@@ -3,3 +3,15 @@ site/dist/
 site/.astro/
 .~lock.*
 .playwright-mcp/
+
+# Source material and scratch output that must not reach the repo: the pptx and the
+# images/ previews carry unknown or watermarked licences (see CLAUDE.md), the rest is
+# local tooling state.
+lectures/
+images/
+*.docx
+site/.shots/
+site/.wrangler/
+skills-lock.json
+.agents/
+.claude/

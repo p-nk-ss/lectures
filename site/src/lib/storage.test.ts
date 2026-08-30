@@ -10,7 +10,10 @@ import {
   clearAllProgress,
   clearAllQuizzes,
   clearEverything,
+  getSeen,
+  pushSeen,
 } from './storage';
+import { SEEN_MEMORY } from './quiz';
 
 const store = new Map<string, string>();
 beforeEach(() => {
@@ -116,5 +119,46 @@ describe('clearing', () => {
   it('clearing what is already gone removes nothing', () => {
     expect(clearLecture('99-nope')).toBe(0);
     expect(clearEverything()).toBe(0);
+  });
+});
+
+describe('questions already asked', () => {
+  it('empty history when nothing is stored or the value is broken', () => {
+    expect(getSeen('03', 'nurse')).toEqual([]);
+    localStorage.setItem('aiti:seen:03:nurse', '{broken');
+    expect(getSeen('03', 'nurse')).toEqual([]);
+  });
+
+  it('the newest run comes first and older ids are not duplicated', () => {
+    pushSeen('03', 'nurse', ['a', 'b']);
+    pushSeen('03', 'nurse', ['c', 'a']);
+    expect(getSeen('03', 'nurse')).toEqual(['c', 'a', 'b']);
+  });
+
+  it('forgets past SEEN_MEMORY', () => {
+    const ids = Array.from({ length: SEEN_MEMORY + 10 }, (_, i) => `q${i}`);
+    pushSeen('03', 'nurse', ids);
+    expect(getSeen('03', 'nurse')).toHaveLength(SEEN_MEMORY);
+  });
+
+  it('history is per topic and per level', () => {
+    pushSeen('03', 'nurse', ['a']);
+    expect(getSeen('03', 'doctor')).toEqual([]);
+    expect(getSeen('04', 'nurse')).toEqual([]);
+  });
+
+  it('resetting a topic clears its history along with its results', () => {
+    seed();
+    pushSeen('03', 'nurse', ['a']);
+    expect(clearTopicQuizzes('03')).toBe(2);
+    expect(localStorage.getItem('aiti:seen:03:nurse')).toBeNull();
+  });
+
+  it('resetting all quizzes clears every history', () => {
+    seed();
+    pushSeen('03', 'nurse', ['a']);
+    pushSeen('04', 'doctor', ['b']);
+    expect(clearAllQuizzes()).toBe(4);
+    expect(ownKeys().filter((k) => k.startsWith('aiti:seen:'))).toEqual([]);
   });
 });

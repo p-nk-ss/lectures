@@ -583,6 +583,19 @@ b, strong { font-weight: 600; }
   height: 18px;
 }
 .quiz-intro .intro-note { margin: 0; font-size: 0.9375rem; color: var(--muted); }
+/* The bank is still in flight: the button says so rather than starting an empty run. */
+.quiz-intro button[disabled] { opacity: 0.55; cursor: default; }
+.quiz-intro button[disabled]:hover { transform: none; }
+.quiz-intro .bank-error { margin: 0; font-size: 0.9375rem; color: var(--danger-text); }
+.quiz-intro .bank-error .retry {
+  font: inherit;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
 @media (max-width: 34rem) {
   .quiz-intro .rules li { grid-template-columns: 1fr; gap: 0.35rem; }
 }

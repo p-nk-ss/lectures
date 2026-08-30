@@ -18,6 +18,8 @@ const lectures = defineCollection({
 const question = z.object({
   id: z.string(),
   type: z.enum(['single', 'multiple']),
+  kind: z.enum(['case', 'recall']).default('recall'),
+  source: z.string().optional(),
   text: z.string(),
   vignette: z.string().optional(),
   options: z.array(z.string()).min(4).max(5),

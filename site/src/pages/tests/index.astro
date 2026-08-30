@@ -1,16 +1,14 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import { groupBanks, type Bank } from '../../lib/banks';
+import { QUIZ_RUN_SIZE } from '../../lib/quiz';
 import { topicById } from '../../lib/topics';
 
-const quizzes = await getCollection('quizzes');
-const byTopic = new Map<string, typeof quizzes>();
-for (const q of quizzes) {
-  const list = byTopic.get(q.data.topic) ?? [];
-  list.push(q);
-  byTopic.set(q.data.topic, list);
-}
-const topics = [...byTopic.keys()].sort();
+const banks = groupBanks(await getCollection('quizzes'));
+const byTopic = new Map<string, Bank[]>();
+for (const b of banks) byTopic.set(b.topic, [...(byTopic.get(b.topic) ?? []), b]);
+const topics = [...byTopic.keys()];
 ---
 <Base title="Тести — АіІТ">
   <header class="page-head">
@@ -24,13 +22,16 @@ const topics = [...byTopic.keys()].sort();
       <section class="topic-tests">
         <h2>LVL {id} · {(t?.short ?? `ТЕМА ${id}`).toUpperCase()}</h2>
         <div class="levels">
-          {(byTopic.get(id) ?? []).sort((a) => (a.data.level === 'nurse' ? -1 : 1)).map((q) => (
-            <a class="level-card press" href={`/tests/${id}/${q.data.level}/`} data-topic={id} data-level={q.data.level}>
+          {(byTopic.get(id) ?? []).map((b) => (
+            <a class="level-card press" href={`/tests/${id}/${b.level}/`} data-topic={id} data-level={b.level}>
               <span class="level-name">
-                <span class="g">{q.data.level === 'nurse' ? '♥' : '✚'}</span>{' '}
-                {q.data.level === 'nurse' ? 'МЕДСЕСТРА' : 'ЛІКАР'}
+                <span class="g">{b.level === 'nurse' ? '♥' : '✚'}</span>{' '}
+                {b.level === 'nurse' ? 'МЕДСЕСТРА' : 'ЛІКАР'}
               </span>
-              <span class="count">{q.data.questions.length} питань</span>
+              <span class="count">
+                {Math.min(QUIZ_RUN_SIZE, b.questions.length)} питань
+                {b.questions.length > QUIZ_RUN_SIZE && ` з банку на ${b.questions.length}`}
+              </span>
               <span class="best" data-best></span>
             </a>
           ))}

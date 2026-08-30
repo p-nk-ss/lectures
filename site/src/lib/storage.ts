@@ -1,4 +1,4 @@
-import type { QuizLevel } from './quiz';
+import { SEEN_MEMORY, type QuizLevel } from './quiz';
 
 export interface BestResult { score: number; total: number; date: string }
 
@@ -8,6 +8,8 @@ export const KEY_PREFIX = 'aiti:';
 export const quizKey = (topic: string, level: QuizLevel) => `${KEY_PREFIX}quiz:${topic}:${level}`;
 export const progressKey = (slug: string) => `${KEY_PREFIX}progress:${slug}`;
 export const readKey = (slug: string) => `${KEY_PREFIX}read:${slug}`;
+/** Question ids the last few runs already asked, so the next run can avoid them. */
+export const seenKey = (topic: string, level: QuizLevel) => `${KEY_PREFIX}seen:${topic}:${level}`;
 
 export function getBest(topic: string, level: QuizLevel): BestResult | null {
   try {
@@ -28,6 +30,28 @@ export function saveBest(topic: string, level: QuizLevel, r: BestResult): void {
     localStorage.setItem(quizKey(topic, level), JSON.stringify(r));
   } catch {
     // storage full/unavailable — non-critical
+  }
+}
+
+/* ---- Which questions a reader has already been asked ------------------------------- */
+
+/** Most recent first. Anything unparseable reads as an empty history rather than throwing. */
+export function getSeen(topic: string, level: QuizLevel, store: Storage = localStorage): string[] {
+  try {
+    const v = JSON.parse(store.getItem(seenKey(topic, level)) ?? '[]');
+    return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Records one run and forgets whatever falls past SEEN_MEMORY. */
+export function pushSeen(topic: string, level: QuizLevel, ids: string[], store: Storage = localStorage): void {
+  const kept = [...ids, ...getSeen(topic, level, store).filter((id) => !ids.includes(id))].slice(0, SEEN_MEMORY);
+  try {
+    store.setItem(seenKey(topic, level), JSON.stringify(kept));
+  } catch {
+    // storage full/unavailable — the next run just repeats more often
   }
 }
 
@@ -97,12 +121,12 @@ export const clearLecture = (slug: string, store: Storage = localStorage) =>
   remove([progressKey(slug), readKey(slug)], store);
 
 export const clearTopicQuizzes = (topic: string, store: Storage = localStorage) =>
-  remove([quizKey(topic, 'nurse'), quizKey(topic, 'doctor')], store);
+  remove([quizKey(topic, 'nurse'), quizKey(topic, 'doctor'), seenKey(topic, 'nurse'), seenKey(topic, 'doctor')], store);
 
 export const clearAllProgress = (store: Storage = localStorage) =>
   remove(ownKeys(store).filter((k) => k.startsWith(`${KEY_PREFIX}progress:`) || k.startsWith(`${KEY_PREFIX}read:`)), store);
 
 export const clearAllQuizzes = (store: Storage = localStorage) =>
-  remove(ownKeys(store).filter((k) => k.startsWith(`${KEY_PREFIX}quiz:`)), store);
+  remove(ownKeys(store).filter((k) => k.startsWith(`${KEY_PREFIX}quiz:`) || k.startsWith(`${KEY_PREFIX}seen:`)), store);
 
 export const clearEverything = (store: Storage = localStorage) => remove(ownKeys(store), store);

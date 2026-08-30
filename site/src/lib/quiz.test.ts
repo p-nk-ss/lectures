@@ -6,6 +6,10 @@ import {
   formatClock,
   outcomeOf,
   QUIZ_LIVES,
+  QUIZ_RUN_SIZE,
+  CASE_SHARE,
+  pickRun,
+  shuffleOptions,
   type Question,
 } from './quiz';
 
@@ -78,5 +82,99 @@ describe('outcomeOf', () => {
   });
   it('time out beats everything else', () => {
     expect(run({ answered: 20, wrong: QUIZ_LIVES, secondsLeft: 0 })).toBe('time');
+  });
+});
+
+/* A tiny LCG: the shuffles have to be deterministic or these tests flap. */
+const seeded = (seed: number) => () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+
+const mk = (id: string, kind: 'case' | 'recall'): Question => ({
+  id,
+  kind,
+  type: 'single',
+  text: id,
+  options: ['a', 'b', 'c', 'd'],
+  correct: [1],
+  explanation: '',
+});
+const bank = (cases: number, recall: number) => [
+  ...Array.from({ length: cases }, (_, i) => mk(`c${i}`, 'case')),
+  ...Array.from({ length: recall }, (_, i) => mk(`r${i}`, 'recall')),
+];
+const cases = (qs: Question[]) => qs.filter((q) => q.kind === 'case').length;
+
+describe('picking a run', () => {
+  it('keeps the case quota when the bank can supply it', () => {
+    const run = pickRun(bank(40, 40), [], seeded(7));
+    expect(run).toHaveLength(QUIZ_RUN_SIZE);
+    expect(cases(run)).toBe(Math.round(QUIZ_RUN_SIZE * CASE_SHARE));
+  });
+
+  it('never returns the same ids twice in one run', () => {
+    const run = pickRun(bank(40, 40), [], seeded(3));
+    expect(new Set(run.map((q) => q.id)).size).toBe(run.length);
+  });
+
+  it('a bank of exactly one run gives that whole run, quota or not', () => {
+    expect(pickRun(bank(0, 20), [], seeded(1))).toHaveLength(20);
+  });
+
+  it('backfills when the case pool is short of the quota', () => {
+    const run = pickRun(bank(3, 40), [], seeded(11));
+    expect(run).toHaveLength(QUIZ_RUN_SIZE);
+    expect(cases(run)).toBe(3);
+  });
+
+  it('survives the one-question fixture', () => {
+    expect(pickRun(bank(0, 1), [], seeded(1))).toHaveLength(1);
+  });
+
+  it('draws unseen questions before repeating seen ones', () => {
+    const b = bank(0, 40);
+    const seen = b.slice(0, 20).map((q) => q.id);
+    const run = pickRun(b, seen, seeded(5));
+    expect(run.every((q) => !seen.includes(q.id))).toBe(true);
+  });
+
+  it('falls back to seen questions rather than returning a short run', () => {
+    const b = bank(0, 20);
+    const run = pickRun(b, b.map((q) => q.id), seeded(5));
+    expect(run).toHaveLength(20);
+  });
+
+  it('two consecutive draws from a large bank differ', () => {
+    const b = bank(40, 40);
+    const a = pickRun(b, [], seeded(2)).map((q) => q.id);
+    const c = pickRun(b, a, seeded(2)).map((q) => q.id);
+    expect(a.join()).not.toBe(c.join());
+  });
+});
+
+describe('shuffling the options', () => {
+  const q: Question = {
+    id: 'q',
+    type: 'multiple',
+    text: 't',
+    options: ['a', 'b', 'c', 'd'],
+    correct: [1, 3],
+    explanation: '',
+  };
+
+  it('keeps the same options, only reordered', () => {
+    const s = shuffleOptions(q, seeded(9));
+    expect([...s.options].sort()).toEqual(['a', 'b', 'c', 'd']);
+  });
+
+  it('the verdict does not change: the same answers stay right', () => {
+    const s = shuffleOptions(q, seeded(9));
+    const picked = q.correct.map((i) => s.options.indexOf(q.options[i]));
+    expect(isCorrect(s, picked)).toBe(true);
+    expect(s.correct.slice().sort()).toEqual(picked.slice().sort());
+  });
+
+  it('a wrong answer stays wrong', () => {
+    const s = shuffleOptions(q, seeded(9));
+    const wrong = [s.options.indexOf('a'), s.options.indexOf('b')];
+    expect(isCorrect(s, wrong)).toBe(false);
   });
 });

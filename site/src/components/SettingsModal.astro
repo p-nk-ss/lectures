@@ -18,7 +18,6 @@ const lectures = filterVisible(await getCollection('lectures'), {
 }).filter((l) => l.data.order <= 8);
 
 const bySlugPrefix = new Map(lectures.map((l) => [l.id.slice(0, 2), l]));
-const quizzes = await getCollection('quizzes');
 
 /* Title slide + one per h2 + final slide, matching the lecture page and the home cards. */
 const slideCount = (body: string | undefined) => (body?.match(/^## /gm)?.length ?? 0) + 2;
@@ -31,7 +30,6 @@ const rows = TOPICS.map((t) => {
     short: t.short,
     slug: lecture.id,
     slides: slideCount(lecture.body),
-    quizzes: quizzes.filter((q) => q.data.topic === t.id).length,
   };
 }).filter((r): r is NonNullable<typeof r> => r !== null);
 ---
@@ -48,7 +46,7 @@ const rows = TOPICS.map((t) => {
 
   <ul class="s-list">
     {rows.map((r) => (
-      <li data-topic={r.id} data-slug={r.slug} data-slides={r.slides} data-quizzes={r.quizzes}>
+      <li data-topic={r.id} data-slug={r.slug} data-slides={r.slides}>
         <span class="s-title"><b>{r.id}</b> {r.short}</span>
         <span class="s-state" data-state>—</span>
         <span class="s-actions">
