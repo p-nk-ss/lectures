@@ -142,6 +142,22 @@ describe('picking a run', () => {
     expect(run).toHaveLength(20);
   });
 
+  it('the quota bends rather than repeat: a small recall pool does not reappear every run', () => {
+    /* 52 cases, 8 recall — exactly the shape of the real banks. The first run takes the
+       whole recall pool; the second must not take it again while unseen cases remain. */
+    const b = bank(52, 8);
+    const first = pickRun(b, [], seeded(4));
+    const second = pickRun(b, first.map((q) => q.id), seeded(6));
+    expect(second).toHaveLength(QUIZ_RUN_SIZE);
+    const firstIds = new Set(first.map((q) => q.id));
+    expect(second.filter((q) => firstIds.has(q.id))).toHaveLength(0);
+  });
+
+  it('the quota still holds when both pools have unseen questions', () => {
+    const run = pickRun(bank(40, 40), [], seeded(8));
+    expect(cases(run)).toBe(Math.round(QUIZ_RUN_SIZE * CASE_SHARE));
+  });
+
   it('two consecutive draws from a large bank differ', () => {
     const b = bank(40, 40);
     const a = pickRun(b, [], seeded(2)).map((q) => q.id);

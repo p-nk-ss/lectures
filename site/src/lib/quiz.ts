@@ -103,8 +103,22 @@ export function pickRun(
   rnd: () => number = Math.random,
 ): Question[] {
   const size = Math.min(QUIZ_RUN_SIZE, bank.length);
-  const wantCases = Math.round(size * CASE_SHARE);
   const seenSet = new Set(seen);
+  const cases = bank.filter((q) => q.kind === 'case');
+  const recall = bank.filter((q) => q.kind !== 'case');
+  const fresh = (pool: readonly Question[]) => pool.filter((q) => !seenSet.has(q.id)).length;
+
+  /* The quota bends before it repeats a question. A bank with only a handful of recall
+     questions would otherwise put every one of them into every run: the reader would meet
+     the same eight questions each time while forty unseen cases sat unused. */
+  let wantCases = Math.round(size * CASE_SHARE);
+  let wantRecall = size - wantCases;
+  const toCases = Math.min(Math.max(0, wantRecall - fresh(recall)), Math.max(0, fresh(cases) - wantCases));
+  wantCases += toCases;
+  wantRecall -= toCases;
+  const toRecall = Math.min(Math.max(0, wantCases - fresh(cases)), Math.max(0, fresh(recall) - wantRecall));
+  wantCases -= toRecall;
+  wantRecall += toRecall;
 
   /* Unseen first: a reader who just played should meet new questions, not a reshuffle. */
   const draw = (pool: readonly Question[], n: number) =>
@@ -115,10 +129,7 @@ export function pickRun(
           ...shuffled(pool.filter((q) => seenSet.has(q.id)), rnd),
         ].slice(0, n);
 
-  const picked = [
-    ...draw(bank.filter((q) => q.kind === 'case'), wantCases),
-    ...draw(bank.filter((q) => q.kind !== 'case'), size - wantCases),
-  ];
+  const picked = [...draw(cases, wantCases), ...draw(recall, wantRecall)];
   if (picked.length < size) {
     const taken = new Set(picked.map((q) => q.id));
     picked.push(...draw(bank.filter((q) => !taken.has(q.id)), size - picked.length));
