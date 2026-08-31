@@ -1,7 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import { groupBanks } from '../lib/banks';
 import { TOPICS } from '../lib/topics';
 import { filterVisible, showDrafts } from '../lib/visibility';
 
@@ -9,10 +8,6 @@ const all = await getCollection('lectures');
 const visible = filterVisible(all, { prod: import.meta.env.PROD, showDrafts: showDrafts() })
   .filter((l) => l.data.order <= 8);
 const bySlugPrefix = new Map(visible.map((l) => [l.id.slice(0, 2), l]));
-const quizzes = await getCollection('quizzes');
-/* Count banks, not files: one quiz is spread over several content files. */
-const banks = groupBanks(quizzes);
-const quizCount = (topic: string) => banks.filter((b) => b.topic === topic).length;
 // Slide count = title slide + one per h2 + final slide, matching the lecture page.
 const slideCount = (body: string | undefined) => (body?.match(/^## /gm)?.length ?? 0) + 2;
 const first = [...visible].sort((a, b) => a.data.order - b.data.order)[0];
@@ -44,7 +39,6 @@ const modules = [
       <div class="cards">
         {TOPICS.filter((t) => t.module === m.n).map((t) => {
           const lecture = bySlugPrefix.get(t.id);
-          const tests = quizCount(t.id);
           return lecture ? (
             <a
               class="card press"
@@ -56,11 +50,7 @@ const modules = [
               <span class="lvl" data-lvl>LVL {t.id} · START</span>
               <span class="title">{t.short}</span>
               <span class="bar card-bar"><span data-fill style="width:0%"></span></span>
-              <span class="meta">
-                {slideCount(lecture.body)} слайдів{tests > 0 ? ` · ${tests} ` : ''}
-                {tests > 0 ? (tests === 1 ? 'тест' : 'тести') : ''}
-                <span data-best></span>
-              </span>
+              <span class="meta" data-best></span>
             </a>
           ) : (
             <div class="card locked">
@@ -76,6 +66,8 @@ const modules = [
   ))}
 
   <script>
+    import { LEVELS } from '../lib/levels';
+
     let cleared = 0;
     document.querySelectorAll<HTMLAnchorElement>('a.card').forEach((card) => {
       const { slug, topic, slides } = card.dataset;
@@ -86,9 +78,7 @@ const modules = [
       try {
         progress = Number(localStorage.getItem(`aiti:progress:${slug}`) ?? 0);
         read = localStorage.getItem(`aiti:read:${slug}`) === '1';
-        bests = ['nurse', 'doctor']
-          .filter((lvl) => localStorage.getItem(`aiti:quiz:${topic}:${lvl}`))
-          .length;
+        bests = LEVELS.filter((l) => localStorage.getItem(`aiti:quiz:${topic}:${l.id}`)).length;
       } catch {
         // storage unavailable — cards fall back to their initial "START" state
       }
@@ -107,7 +97,8 @@ const modules = [
         card.dataset.state = 'progress';
         if (lvl) lvl.textContent = `LVL ${topic} · IN PROGRESS ${pct}%`;
       }
-      if (best && bests > 0) best.textContent = ` · тестів пройдено: ${bests}`;
+      /* Same wording as the level cards on /tests/, and "2" alone would read as a number of questions. */
+      if (best && bests > 0) best.textContent = `тести складено: ${bests} з ${LEVELS.length}`;
     });
 
     const cards = document.querySelectorAll('.card').length;
@@ -194,6 +185,7 @@ const modules = [
     .card.locked .card-bar { border-color: var(--muted-border); }
     .card[data-state='cleared'] .card-bar > span { background: var(--ok); }
     .card .meta { font-size: 0.8125rem; line-height: 1.5; color: var(--muted); }
+    .card .meta:empty { display: none; }
 
     @media (max-width: 40rem) {
       .hero { padding-block: 3rem 2.25rem; }
