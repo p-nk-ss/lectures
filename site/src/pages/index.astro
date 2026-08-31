@@ -24,7 +24,11 @@ const modules = [
       склади тест для самоконтролю.
     </p>
     <div class="hero-actions">
-      {first && <a class="btn" href={`/lektsiyi/${first.id}/`}><span class="g">▶</span> PRESS START</a>}
+      {first && (
+        <a class="btn" id="hero-start" href={`/lektsiyi/${first.id}/`}>
+          <span class="g">▶</span> <span id="hero-start-label">PRESS START</span>
+        </a>
+      )}
       <span class="hero-progress">
         <span class="hero-progress-label">ПРОГРЕС</span>
         <span class="bar hero-bar"><span id="total-fill" style="width:0%"></span></span>
@@ -69,6 +73,10 @@ const modules = [
     import { LEVELS } from '../lib/levels';
 
     let cleared = 0;
+    /* Arrays rather than two "first match" variables: TypeScript cannot see an assignment
+       made inside the forEach below and would narrow a nullable variable to null. */
+    const started: { card: HTMLAnchorElement; slide: number }[] = [];
+    const unread: HTMLAnchorElement[] = [];
     document.querySelectorAll<HTMLAnchorElement>('a.card').forEach((card) => {
       const { slug, topic, slides } = card.dataset;
       const total = Number(slides) || 1;
@@ -99,7 +107,32 @@ const modules = [
       }
       /* Same wording as the level cards on /tests/, and "2" alone would read as a number of questions. */
       if (best && bests > 0) best.textContent = `тести складено: ${bests} з ${LEVELS.length}`;
+
+      /* Where to send the hero button. A lecture in progress wins over an untouched one,
+         and the first of each in curriculum order wins over later ones — there is no
+         "last opened" timestamp in storage, so order is the only stable tie-breaker. */
+      if (!read && pct > 0) started.push({ card, slide: progress });
+      if (!read) unread.push(card);
     });
+
+    const startBtn = document.getElementById('hero-start') as HTMLAnchorElement | null;
+    const startLabel = document.getElementById('hero-start-label');
+    const resumeAt = started[0];
+    const nextUp = unread[0];
+    if (startBtn && startLabel) {
+      if (resumeAt) {
+        startBtn.href = `${resumeAt.card.href}#slide-${resumeAt.slide}`;
+        startLabel.textContent = `ПРОДОВЖИТИ · LVL ${resumeAt.card.dataset.topic}`;
+      } else if (nextUp) {
+        startBtn.href = nextUp.href;
+        /* Nothing started yet keeps the arcade wording; a reader mid-course gets a next step. */
+        if (cleared > 0) startLabel.textContent = `ДАЛІ · LVL ${nextUp.dataset.topic}`;
+      } else {
+        startBtn.href = '/tests/';
+        /* The 8/8 counter beside the button already says everything is read. */
+        startLabel.textContent = 'ДО ТЕСТІВ';
+      }
+    }
 
     const cards = document.querySelectorAll('.card').length;
     const totalFill = document.getElementById('total-fill');

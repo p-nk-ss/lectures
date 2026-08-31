@@ -159,11 +159,18 @@ const hudTitle = `ЛЕКЦІЯ ${topicId} · ${(topic?.short ?? entry.data.title
       slides.forEach((s) => edge.observe(s));
     }
 
-    function goTo(n: number) {
+    function goTo(n: number, behavior: ScrollBehavior = 'smooth') {
       const target = slides[Math.min(total, Math.max(1, n)) - 1];
       if (!target) return;
-      scrollTo({ top: target.offsetTop - hudHeight(), behavior: 'smooth' });
+      scrollTo({ top: target.offsetTop - hudHeight(), behavior });
     }
+
+    /* «Продовжити» on the home page links to #slide-N. Only that link resumes: opening the
+       lecture normally still starts at the title slide, which is what a reader who came for
+       a particular section expects. Jump without animation — a smooth scroll through twelve
+       slides on load looks like a bug. */
+    const resume = /^#slide-(\d+)$/.exec(location.hash);
+    if (resume) goTo(Number(resume[1]), 'auto');
 
     function closeMenu() {
       if (!menu) return;
