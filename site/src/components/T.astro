@@ -84,6 +84,28 @@ if (!term) throw new Error(`Glossary term not found: ${id}`);
     term.addEventListener('mouseleave', () => { if (active === term) active = null; });
     term.addEventListener('blur', () => { if (active === term) active = null; });
   }
+  // Touch has no hover to leave and, on iOS, a tap on plain text neither blurs the term nor
+  // clears its sticky :hover — so there the balloon is an explicit toggle. `pointerup`, not
+  // `click` (iOS does not deliver clicks on non-interactive text to the document) and not
+  // `pointerdown` (a scroll gesture ends in `pointercancel`, so it leaves the balloon open).
+  let opened: HTMLElement | null = null;
+  addEventListener('pointerup', (e) => {
+    if (e.pointerType === 'mouse') return;
+    const target = e.target as Element | null;
+    const hit = target?.closest<HTMLElement>('.term') ?? null;
+    // The balloon is a child of the term: a tap on it counts as a tap outside.
+    const next = hit && !target?.closest('.term-tip') && hit !== opened ? hit : null;
+    if (opened) {
+      opened.classList.remove('open');
+      if (active === opened) active = null;
+    }
+    opened = next;
+    if (next) {
+      next.classList.add('open');
+      show(next);
+    }
+  });
+
   // Fixed balloons do not travel with the page, so follow the term while it is open.
   addEventListener('scroll', reposition, { passive: true, capture: true });
   addEventListener('resize', reposition, { passive: true });
@@ -122,7 +144,13 @@ if (!term) throw new Error(`Glossary term not found: ${id}`);
        Applied to the whole balloon so body and tail cast one continuous shadow. */
     filter: drop-shadow(5px 5px 0 var(--ink));
   }
-  .term:hover .term-tip, .term:focus .term-tip, .term:focus-visible .term-tip { display: flex; }
+  /* Hover only where a pointer can actually leave; plain :focus is not used because a tap
+     focuses the term and nothing on a touch screen takes that focus away again. Touch goes
+     through the `.open` toggle in the script. */
+  .term.open .term-tip, .term:focus-visible .term-tip { display: flex; }
+  @media (hover: hover) {
+    .term:hover .term-tip { display: flex; }
+  }
 
   /* Balloon body: two stacked layers — ink outline, then the fill inset by the 4px border.
      The staircase corners are shared through --balloon; each layer resolves --r itself. */
